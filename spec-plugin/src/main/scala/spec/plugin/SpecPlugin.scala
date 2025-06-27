@@ -1,4 +1,5 @@
 package spec.plugin
+
 import sbt._, Keys._
 import spec.core.SpecRegistry
 import upickle.default.{write => uwrite}
