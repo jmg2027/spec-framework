@@ -5,7 +5,7 @@ object SpecRegistry {
   final case class Tag(
     fqModule     : String,
     instancePath : String,
-    category     : SpecCategory,
+    category     : TagCat,
     localId      : String,
     capability   : Capability,
     paramValues  : Map[String,String],

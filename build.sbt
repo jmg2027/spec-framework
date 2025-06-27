@@ -8,7 +8,7 @@ scalacOptions += "-Ymacro-annotations"
 lazy val specCore = (project in file("spec-core"))
   .settings(
     name := "spec-core",
-    libraryDependencies ++= Seq("com.lihaoyi" %% "upickle" % "3.3.0")
+    libraryDependencies ++= Seq("com.lihaoyi" %% "upickle" % "2.0.0")
   )
 
 lazy val specPlugin = (project in file("spec-plugin"))

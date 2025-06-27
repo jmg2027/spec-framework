@@ -1,4 +1,4 @@
-# ChiselSpecVerify Framework Specification (rev D)
+# ChiselSpecVerify Framework Specification (rev E)
 
 > **Mission statement**  Unify architectural specifications, Chisel RTL, and verification artefacts inside a single Scala‑based source of truth, with maximum automation and minimum manual wiring.
 
@@ -60,6 +60,7 @@ trait HardwareSpecification {
   def metadata           : Map[String,String] = Map.empty // open bag for team specifics
 }
 ```
+scala-reflect macroTransform white-box annotation.
 
 ---
 
@@ -74,6 +75,7 @@ class LocalSpec(
                                           // these module classes even if the instance graph cannot see them.
 ) extends scala.annotation.StaticAnnotation
 ```
+Implementation: scala.reflect.macros.whitebox.Context 기반 매크로. Requires paradise + -Ymacro-annotations. Scalameta 의존 없음.
 
 **Guidelines**
 
@@ -129,7 +131,7 @@ class Queue(depth: Int = 4, w: Int = 32) extends Module {
 
 | Step                           | Action                                                                                                                                                                      |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **① Compilation**              | Scala compiler expands all `@LocalSpec`; macro captures file/line, ownerModule, instance path placeholder.                                                                  |
+| **① Compilation**              | Scala compiler expands all `@LocalSpec` (scala-reflect macro-annotation); macro captures file/line, ownerModule, instance path placeholder.                                                                  |
 | **② Elaboration → FIRRTL**     | Pass‑through annotations emit exact `instancePath`.                                                                                                                         |
 | **③ exportSpecIndex** SBT task | Combines macro metadata + FIRRTL instance graph.• auto‑link *Spec.parentIds* (instance‑contain + CONTRACT hierarchy).• writes `target/SpecIndex.json` & `ModuleIndex.json`. |
 | **④ specLint (optional)**      | Warn / fail for: missing CONTRACT per module, unused Spec, etc. Controlled via JVM flags.                                                                                   |
@@ -216,6 +218,7 @@ $ sbt -Dspec.fail.noContract=true specLint
 
 | Rev   | Date       | Notes                                                                                                                        |
 | ----- | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **E** | 2025‑07‑01 | *Migrate LocalSpec to scala-reflect macros; drop Scalameta.* |
 | **D** | 2025‑06‑26 | *Separated spec definition vs. implementation; CONTRACT category; Capability enum; verifications schema; submods clarified.* |
 | C     | 2025‑06‑25 | Initial public draft with CONTRACT & Capability concepts                                                                     |
 | B     | 2025‑06‑24 | children param dropped; A‑model clarified                                                                                    |

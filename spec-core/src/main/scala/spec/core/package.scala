@@ -1,14 +1,20 @@
 package spec.core
 
-sealed trait SpecCategory ; object SpecCategory {
-  case object CONTRACT extends SpecCategory ; case object FUNC extends SpecCategory
-  case object PROP extends SpecCategory     ; case object COV  extends SpecCategory
-  final case class RAW(name: String) extends SpecCategory
+sealed trait TagCat { def prefix: String }
+object TagCat {
+  case object CONTRACT extends TagCat { val prefix = "CONTRACT" }
+  case object FUNC     extends TagCat { val prefix = "FUNC"     }
+  case object PROP     extends TagCat { val prefix = "PROP"     }
+  case object COV      extends TagCat { val prefix = "COV"      }
+  case object PARAM    extends TagCat { val prefix = "PARAM"    }
+  final case class Raw(prefix: String) extends TagCat
 }
 
 sealed trait Capability ; object Capability {
-  case object BASIC_QUEUE extends Capability
-  final case class RAW(name: String) extends Capability
+  case object BASIC_QUEUE  extends Capability { val name = "BASIC_QUEUE" }
+  case object LOWPWR_QUEUE extends Capability { val name = "LOWPWR_QUEUE" }
+  case object EXT_IP       extends Capability { val name = "EXT_IP"       }
+  final case class Raw(name: String) extends Capability
 }
 
 trait HardwareSpecification {
