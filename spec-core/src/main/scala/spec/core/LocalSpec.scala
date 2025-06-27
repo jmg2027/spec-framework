@@ -1,9 +1,10 @@
 package spec.core
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
+import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 
 @compileTimeOnly("enable -Ymacro-annotations")
-class LocalSpec(cat: TagCat, localId: String,
+class LocalSpec(cat: SpecCategory, localId: String,
                 capability: Capability = null,
                 paramValues: Map[String,String] = Map.empty)
   extends StaticAnnotation {
