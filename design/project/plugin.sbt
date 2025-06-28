@@ -1,0 +1,1 @@
+addSbtPlugin("your.company" % "spec-plugin" % "0.1.0-SNAPSHOT")
