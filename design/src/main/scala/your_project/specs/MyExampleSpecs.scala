@@ -1,31 +1,27 @@
-// design/src/main/scala/your_project/specs/MyExampleSpecs.scala
 package your_project.specs
 
-import framework.spec._
+import framework.macros.SpecEmit.emitSpec     // compile-time emission 매크로
+import framework.spec.Spec._                  // DSL 진입점 (FUNCTION, PROPERTY …)
+import framework.spec.Capability              // Capability 심볼
 
-/**
- * Example HardwareSpecification definitions using the builder DSL.
- */
 object MyExampleSpecs {
-  // Define a simple capability
-  val QueueCap = Capability("Queueing")
 
-  // Define a functional spec
-  val QueueSpec: HardwareSpecification = new SpecBuilder(
-    id = "QUEUE_FUNC_001",
-    category = SpecCategory.FUNCTION,
-    description = "Queue must preserve FIFO order for all enqueued elements."
-  ).hasCapability(QueueCap)
-   .withStatus("DRAFT")
-   .withMetadata("author", "Alice")
-   .apply()
+  /*───────────────── FUNCTION Spec ─────────────────*/
+  val QueueSpec = emitSpec {
+    FUNCTION("QUEUE_FUNC_001", "Queue must preserve FIFO")
+      .capability(Capability("Queueing"))     // Stage1 → Stage2
+      .status("DRAFT")
+      .entry("Algorithm", "FIFO")
+      .build()
+  }
 
-  // Define a property spec
-  val ResetSpec: HardwareSpecification = new SpecBuilder(
-    id = "RESET_PROP_001",
-    category = SpecCategory.PROPERTY,
-    description = "Module must reset all internal state to zero on reset signal."
-  ).withStatus("APPROVED")
-   .withMetadata("author", "Bob")
-   .apply()
+  /*───────────────── PROPERTY Spec ─────────────────*/
+  val ResetSpec = emitSpec {
+    PROPERTY("RESET_PROP_001", "Reset state to zero on reset signal.")
+      .noCapability                           // Stage1 → Stage2
+      .status("APPROVED")
+      .entry("ResetType", "Synchronous")
+      .entry("Value",     "Zero")
+      .build()
+  }
 }

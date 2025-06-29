@@ -13,3 +13,10 @@ project/project/
 # OS
 .DS_Store
 Thumbs.db
+
+# zips
+*.zip
+
+# tar
+*.tar
+*.tar.gz
