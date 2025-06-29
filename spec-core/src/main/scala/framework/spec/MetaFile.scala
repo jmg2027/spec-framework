@@ -28,8 +28,10 @@ object MetaFile {
   // Public API
   // ---------------------------------------------------------------------------
   /** Serialize a `Tag` to  JSON  and write it as  *.tag*  */
-  def writeTag(tag: Tag): Unit =
+  def writeTag(tag: Tag): Unit = {
     writeFile(tag.id, "tag", upickle.default.write(tag, indent = 2))
+    println(s"[MetaFile] wrote tag → spec-meta for id=${tag.id}")
+  }
 
   /** Serialize a `HardwareSpecification` to JSON and write it as *.spec* */
   def writeSpec(spec: HardwareSpecification): Unit =

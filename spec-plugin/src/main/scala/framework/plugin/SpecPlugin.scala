@@ -66,6 +66,7 @@ object SpecPlugin extends AutoPlugin {
         Files.writeString(outDir.resolve("ModuleIndex.json"), ujson.write(tags, indent = 2))
         log.info(s"SpecIndex generated  → ${outDir.resolve("SpecIndex.json")}")
         log.info(s"ModuleIndex generated → ${outDir.resolve("ModuleIndex.json")}")
+        log.info(s"Aggregated ${specs.size} specs, ${tags.size} tags")
       }
     },
 
