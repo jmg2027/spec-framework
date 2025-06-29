@@ -42,11 +42,12 @@ echo ""
 # The design project loads spec-plugin as a plugin, so it must be published last.
 echo "--- 4/5: Publishing spec-plugin locally ---"
 # Execute publishLocal within an SBT shell for the specPlugin project
-sbt <<EOF
-project specPlugin
-publishLocal
-exit
-EOF
+sbt "project specPlugin" "publishLocal"
+# sbt <<EOF
+# project specPlugin
+# publishLocal
+# exit
+# EOF
 if [ $? -ne 0 ]; then
     echo "ERROR: Failed to publish spec-plugin. Aborting script."
     exit 1

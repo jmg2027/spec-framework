@@ -2,13 +2,14 @@
 package your_project.design
 
 import framework.macros.LocalSpec
-import your_project.specs.MyExampleSpecs
+import your_project.specs.MyExampleSpecs.QueueSpec
 
 /**
  * Example RTL/Chisel module tagged with a HardwareSpecification using @LocalSpec.
  * (This is a minimal stub for demonstration; replace with real Chisel/RTL code as needed.)
  */
 @LocalSpec("QUEUE_FUNC_001")
+// @LocalSpec(QueueSpec) // Use the spec defined in MyExampleSpecs
 class Queue {
   // ... RTL/Chisel implementation ...
   def enqueue(x: Int): Unit = ()

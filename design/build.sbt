@@ -25,7 +25,7 @@ lazy val design = (project in file("."))
     libraryDependencies ++= Seq(
       "your.company" %% "spec-core"   % "0.1.0-SNAPSHOT",   // Core types and registry
       "your.company" %% "spec-macros" % "0.1.0-SNAPSHOT",   // Macro annotation for compile-time emission
-      "edu.berkeley.cs" %% "chisel3"  % "3.5.6"             // Chisel HDL (optional, for hardware design)
+      "edu.berkeley.cs" %% "chisel3"  % "3.6.0"             // Chisel HDL (optional, for hardware design)
     ),
 
     // --------------------------------------------------------------------------
