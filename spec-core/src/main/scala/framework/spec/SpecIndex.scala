@@ -16,14 +16,17 @@ object SpecIndex {
 
   // Map: scalaDeclarationPath -> specId
   lazy val map: Map[String, String] = {
-    if (!baseDir.exists || !baseDir.isDirectory) return Map.empty
-    val specFiles = baseDir.listFiles().filter(f => f.getName.endsWith(".spec"))
-    specFiles.flatMap { file =>
-      val lines = Source.fromFile(file).getLines().toList
-      val idOpt = lines.find(_.startsWith("id=")).map(_.drop(3).trim)
-      val pathOpt = lines.find(_.startsWith("scalaDeclarationPath=")).map(_.drop(21).trim)
-      for (id <- idOpt; path <- pathOpt) yield path -> id
-    }.toMap
+    if (!baseDir.exists || !baseDir.isDirectory) {
+      Map.empty
+    } else {
+      val specFiles = baseDir.listFiles().filter(f => f.getName.endsWith(".spec"))
+      specFiles.flatMap { file =>
+        val lines = Source.fromFile(file).getLines().toList
+        val idOpt = lines.find(_.startsWith("id=")).map(_.drop(3).trim)
+        val pathOpt = lines.find(_.startsWith("scalaDeclarationPath=")).map(_.drop(21).trim)
+        for (id <- idOpt; path <- pathOpt) yield path -> id
+      }.toMap
+    }
   }
 
   // For macro: lookup by symbol fullName
