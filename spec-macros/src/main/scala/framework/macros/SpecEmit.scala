@@ -58,8 +58,12 @@ object SpecEmit {
   )(body: c.Expr[HardwareSpecification]): c.Expr[HardwareSpecification] = {
     import c.universe._
     // 1. Evaluate the builder expression at compile time (macro JVM)
-    val spec: HardwareSpecification =
+    val spec: HardwareSpecification = try {
       c.eval(c.Expr[HardwareSpecification](c.untypecheck(body.tree.duplicate)))
+    } catch {
+      case e: Throwable =>
+        c.abort(c.enclosingPosition, s"emitSpec macro failed to evaluate the HardwareSpecification at compile time: ${e.getMessage}")
+    }
     // 2. Write the .spec file at compile time using MetaFile
     MetaFile.writeSpec(spec)
     // 3. Return the original builder expression unchanged (for runtime semantics)

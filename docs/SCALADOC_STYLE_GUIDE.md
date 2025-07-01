@@ -38,14 +38,15 @@
 **예시:**
 ```scala
 /**
- * LocalSpec: Macro annotation for tagging classes, objects, vals, or defs with a hardware spec ID.
+ * LocalSpec: Macro annotation for tagging classes, objects, vals, or defs with a hardware spec ID or reference.
  *
  * Usage:
  *   @LocalSpec("MY_SPEC_ID")
+ *   @LocalSpec(MyExampleSpecs.QueueSpec)
  *   class MyModule { ... }
  *
  * This macro will:
- *   - Enforce that the argument is a string literal (the spec ID, must be unique per compile run)
+ *   - Allow either a string literal (spec ID) or a stable reference to a HardwareSpecification (e.g., a val/object)
  *   - Prevent duplicate IDs within the same compilation run (compile-time error)
  *   - At compile time, emit a Tag metadata file (for plugin aggregation)
  *   - Register the tag in SpecRegistry for runtime/debug use
