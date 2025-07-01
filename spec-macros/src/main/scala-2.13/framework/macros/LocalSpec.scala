@@ -11,6 +11,7 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
 
 import _root_.framework.spec.{Tag, MetaFile, HardwareSpecification}
+import _root_.framework.spec.SpecIndex
 
 @compileTimeOnly("enable -Ymacro-annotations")
 final class LocalSpec(arg: Any) extends StaticAnnotation {
@@ -23,24 +24,19 @@ object LocalSpec {
 
     def abort(msg: String) = c.abort(c.enclosingPosition, msg)
 
-    // 1) Extract the spec-ID (string literal or HardwareSpecification reference)
+    // 1) Extract the spec-ID (string literal or cross-file HardwareSpecification reference)
     val specId: String = c.prefix.tree match {
       case q"new $_(${Literal(Constant(id: String))})" => id
 
       case q"new $_($expr)" =>
-        val tpe = c.typecheck(expr).tpe
-        val expected = c.typeOf[_root_.framework.spec.HardwareSpecification]
-        if (!(tpe <:< expected))
-          c.abort(expr.pos, s"@LocalSpec expected String or HardwareSpecification, got: " + tpe)
-
-        val evaluated = try {
-          c.eval(c.Expr[HardwareSpecification](c.untypecheck(expr.duplicate)))
-        } catch {
-          case e: Throwable =>
-            c.abort(expr.pos, s"@LocalSpec: evaluation failed: ${e.getMessage}")
+        // Try to resolve the symbol's fullName
+        val sym = c.typecheck(expr, mode = c.TYPEmode).symbol
+        val fullName = sym.fullName
+        SpecIndex.idFor(fullName).getOrElse {
+          c.abort(expr.pos,
+            s"@LocalSpec: cannot resolve specId for ${fullName}.\n"+
+            "Hint: ensure its .spec file is generated before this annotation or use @LocalSpec(\"ID\")")
         }
-
-        evaluated.id
     }
 
     val pos = c.enclosingPosition

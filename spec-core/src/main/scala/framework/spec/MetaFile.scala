@@ -51,8 +51,14 @@ object MetaFile {
    * the spec-meta directory. Called by the macro system when a hardware spec is
    * defined in user code.
    */
-  def writeSpec(spec: HardwareSpecification): Unit =
-    writeFile(spec.id, "spec", upickle.default.write(spec, indent = 2))
+  def writeSpec(spec: HardwareSpecification): Unit = {
+    // Compose .spec file content: header lines (id, scalaDeclarationPath, ...) + JSON
+    val header =
+      s"id=${spec.id}\n" +
+      spec.scalaDeclarationPath.map(p => s"scalaDeclarationPath=$p\n").getOrElse("")
+    val json = upickle.default.write(spec, indent = 2)
+    writeFile(spec.id, "spec", header + json + "\n")
+  }
 
   // ---------------------------------------------------------------------------
   // Internal helper: Write a JSON string to a file with a unique name

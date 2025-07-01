@@ -37,6 +37,7 @@ final case class HardwareSpecification(
   requiredCapabilities: Set[String], // Capabilities required by this spec
   definitionFile: Option[String],    // Source file where this spec is defined
   entries: List[SpecEntry],          // List of key-value entries for this spec
+  scalaDeclarationPath: Option[String] = None // Full Scala path of the val/object defining this spec
 )
 object HardwareSpecification {
   // upickle ReadWriter for HardwareSpecification (automatic via macro)

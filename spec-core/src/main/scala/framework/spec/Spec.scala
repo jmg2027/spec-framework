@@ -149,7 +149,7 @@ object Spec {
      * @return
      *   Fully defined HardwareSpecification object
      */
-    def build(): HardwareSpecification = {
+    def build(scalaDeclarationPath: Option[String] = None): HardwareSpecification = {
       // 1. Validation (runtime validation beyond compile-time safety)
       //    - Ensure the spec ID is URI-safe (no spaces)
       //    - Ensure at least one entry is defined
@@ -165,7 +165,7 @@ object Spec {
       //      This can be extended in SpecRegistry or handled at the plugin aggregation stage.
 
       // 2. Create the final HardwareSpecification object from the immutable Core object
-      val spec = core.toHardwareSpec
+      val spec = core.toHardwareSpec.copy(scalaDeclarationPath = scalaDeclarationPath)
 
       // 3. Side effects:
       //    - Emit the .spec file for plugin aggregation (compile-time metadata)
@@ -216,6 +216,7 @@ object Spec {
         requiredCapabilities = requiredCaps,
         definitionFile = definitionFile,
         entries = entries,
+        scalaDeclarationPath = None // default, will be set in build() if needed
       )
   }
 }
