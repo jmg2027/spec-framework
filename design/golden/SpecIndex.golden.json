@@ -1,0 +1,385 @@
+[
+  {
+    "capability": [],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Dummy spec for assignment statement test",
+    "entries": [
+      {
+        "name": "StatementKey",
+        "value": "StatementValue"
+      }
+    ],
+    "id": "DUMMY_ASSIGNN",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Contractual"
+      }
+    ],
+    "category": "CONTRACT",
+    "definitionFile": [],
+    "description": "Dummy spec for case class test",
+    "entries": [
+      {
+        "name": "CaseKey",
+        "value": "CaseValue"
+      }
+    ],
+    "id": "DUMMY_CASE",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [
+      "BASE1",
+      "BASE2"
+    ],
+    "relatedToIds": [
+      "REL1"
+    ],
+    "requiredCapabilities": [],
+    "scalaDeclarationPath": [
+      "your_project.specs.MyExampleSpecs.DummyCaseSpec"
+    ],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Coverage"
+      }
+    ],
+    "category": "COVERAGE",
+    "definitionFile": [],
+    "description": "Dummy coverage spec",
+    "entries": [
+      {
+        "name": "CovKey",
+        "value": "CovValue"
+      }
+    ],
+    "id": "DUMMY_COVERAGE",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [
+      "BASE_COV"
+    ],
+    "relatedToIds": [
+      "REL_COV"
+    ],
+    "requiredCapabilities": [],
+    "scalaDeclarationPath": [
+      "your_project.specs.MyExampleSpecs.DummyCoverageSpec"
+    ],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Impl"
+      }
+    ],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Dummy spec with impl/verified",
+    "entries": [
+      {
+        "name": "ImplKey",
+        "value": "ImplValue"
+      }
+    ],
+    "id": "DUMMY_IMPL",
+    "implementedBy": [
+      "SomeModule"
+    ],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "scalaDeclarationPath": [
+      "your_project.specs.MyExampleSpecs.DummyImplSpec"
+    ],
+    "status": [],
+    "verifiedBy": [
+      "SomeTest"
+    ]
+  },
+  {
+    "capability": [
+      {
+        "name": "Test"
+      }
+    ],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Dummy spec for literal test",
+    "entries": [
+      {
+        "name": "Key",
+        "value": "Value"
+      }
+    ],
+    "id": "DUMMY_LITERAL",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Meta"
+      }
+    ],
+    "category": "INTERFACE",
+    "definitionFile": [],
+    "description": "Dummy spec with metadata and requiredCaps",
+    "entries": [
+      {
+        "name": "MetaKey",
+        "value": "MetaValue"
+      }
+    ],
+    "id": "DUMMY_META",
+    "implementedBy": [],
+    "metadata": {
+      "baz": "qux",
+      "foo": "bar"
+    },
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [
+      "CAP1",
+      "CAP2"
+    ],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [],
+    "category": "PROPERTY",
+    "definitionFile": [],
+    "description": "Dummy spec with multiple entries",
+    "entries": [
+      {
+        "name": "A",
+        "value": "1"
+      },
+      {
+        "name": "B",
+        "value": "2"
+      },
+      {
+        "name": "C",
+        "value": "3"
+      }
+    ],
+    "id": "DUMMY_MULTI",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [],
+    "category": "PROPERTY",
+    "definitionFile": [],
+    "description": "Dummy spec for object test",
+    "entries": [
+      {
+        "name": "ObjKey",
+        "value": "ObjValue"
+      }
+    ],
+    "id": "DUMMY_OBJ",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [
+      "DRAFT"
+    ],
+    "verifiedBy": []
+  },
+  {
+    "capability": [],
+    "category": "RAW:RAW_PREFIX",
+    "definitionFile": [],
+    "description": "Dummy raw spec",
+    "entries": [
+      {
+        "name": "RawKey",
+        "value": "RawValue"
+      }
+    ],
+    "id": "DUMMY_RAW",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "scalaDeclarationPath": [
+      "your_project.specs.MyExampleSpecs.DummyRawSpec"
+    ],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Status"
+      }
+    ],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Dummy spec with status and metadata",
+    "entries": [
+      {
+        "name": "StatusKey",
+        "value": "StatusValue"
+      }
+    ],
+    "id": "DUMMY_STATUS",
+    "implementedBy": [],
+    "metadata": {
+      "approvedBy": "CI"
+    },
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "scalaDeclarationPath": [
+      "your_project.specs.MyExampleSpecs.DummyStatusSpec"
+    ],
+    "status": [
+      "APPROVED"
+    ],
+    "verifiedBy": []
+  },
+  {
+    "capability": [],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Dummy spec for switch statement test",
+    "entries": [
+      {
+        "name": "StatementKey",
+        "value": "StatementValue"
+      }
+    ],
+    "id": "DUMMY_Switch",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Dummy spec for when statement test",
+    "entries": [
+      {
+        "name": "StatementKey",
+        "value": "StatementValue"
+      }
+    ],
+    "id": "DUMMY_WHEN",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [],
+    "category": "FUNCTION",
+    "definitionFile": [],
+    "description": "Test assignment spec for CI coverage",
+    "entries": [
+      {
+        "name": "AssignKey",
+        "value": "AssignValue"
+      }
+    ],
+    "id": "TEST_ASSIGN",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Test"
+      }
+    ],
+    "category": "INTERFACE",
+    "definitionFile": [],
+    "description": "Test interface spec for CI coverage",
+    "entries": [
+      {
+        "name": "InterfaceKey",
+        "value": "InterfaceValue"
+      }
+    ],
+    "id": "TEST_INTERFACE",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "status": [],
+    "verifiedBy": []
+  },
+  {
+    "capability": [
+      {
+        "name": "Test"
+      }
+    ],
+    "category": "CONTRACT",
+    "definitionFile": [],
+    "description": "Test module spec for CI coverage",
+    "entries": [
+      {
+        "name": "ModuleKey",
+        "value": "ModuleValue"
+      }
+    ],
+    "id": "TEST_MODULE",
+    "implementedBy": [],
+    "metadata": {},
+    "parentIds": [],
+    "relatedToIds": [],
+    "requiredCapabilities": [],
+    "scalaDeclarationPath": [
+      "your_project.specs.MyExampleSpecs.TestModuleSpec"
+    ],
+    "status": [],
+    "verifiedBy": []
+  }
+]

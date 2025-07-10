@@ -69,4 +69,4 @@ cd .. # Return to root directory
 
 echo ""
 echo "--- All build and publish processes completed ---"
-echo "Check SpecIndex.json and ModuleIndex.json files in the design/target/ directory."
+echo "Check SpecIndex.json and TagIndex.json files in the design/target/ directory."

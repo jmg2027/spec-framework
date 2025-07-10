@@ -3,9 +3,8 @@
 // Project name
 name := "spec-macros"
 
-// Depend on spec-core via published local artifact (not project dependency)
-// '%%' ensures the correct Scala versioned artifact is used
-libraryDependencies += "your.company" %% "spec-core" % "0.1.0-SNAPSHOT"
+// Depend directly on the specCore project defined in the root build.
+dependsOn(LocalProject("specCore"))
 
 // Add Scala reflection for macro support
 libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value

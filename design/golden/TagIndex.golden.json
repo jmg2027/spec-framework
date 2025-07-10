@@ -1,0 +1,56 @@
+[
+  {
+    "column": 4,
+    "fullyQualifiedModuleName": "your_project.design.TestModule",
+    "hardwareInstancePath": "",
+    "id": "DUMMY_ASSIGNN",
+    "line": 38,
+    "scalaDeclarationPath": "your_project.design.TestModule.dummyspecAssign",
+    "srcFile": "/workspace/spec-framework/design/src/main/scala/your_project/design/MyExampleDesign.scala"
+  },
+  {
+    "column": 4,
+    "fullyQualifiedModuleName": "your_project.design.TestModule",
+    "hardwareInstancePath": "",
+    "id": "DUMMY_Switch",
+    "line": 43,
+    "scalaDeclarationPath": "your_project.design.TestModule.dummyspecSwitch",
+    "srcFile": "/workspace/spec-framework/design/src/main/scala/your_project/design/MyExampleDesign.scala"
+  },
+  {
+    "column": 4,
+    "fullyQualifiedModuleName": "your_project.design.TestModule",
+    "hardwareInstancePath": "",
+    "id": "DUMMY_WHEN",
+    "line": 31,
+    "scalaDeclarationPath": "your_project.design.TestModule.dummyspecWhen",
+    "srcFile": "/workspace/spec-framework/design/src/main/scala/your_project/design/MyExampleDesign.scala"
+  },
+  {
+    "column": 4,
+    "fullyQualifiedModuleName": "your_project.design.TestModule",
+    "hardwareInstancePath": "",
+    "id": "TEST_ASSIGN",
+    "line": 27,
+    "scalaDeclarationPath": "your_project.design.TestModule.a",
+    "srcFile": "/workspace/spec-framework/design/src/main/scala/your_project/design/MyExampleDesign.scala"
+  },
+  {
+    "column": 4,
+    "fullyQualifiedModuleName": "your_project.design.TestModule",
+    "hardwareInstancePath": "",
+    "id": "TEST_INTERFACE",
+    "line": 21,
+    "scalaDeclarationPath": "your_project.design.TestModule.io",
+    "srcFile": "/workspace/spec-framework/design/src/main/scala/your_project/design/MyExampleDesign.scala"
+  },
+  {
+    "column": 2,
+    "fullyQualifiedModuleName": "your_project.design",
+    "hardwareInstancePath": "",
+    "id": "TEST_MODULE",
+    "line": 18,
+    "scalaDeclarationPath": "your_project.design.TestModule",
+    "srcFile": "/workspace/spec-framework/design/src/main/scala/your_project/design/MyExampleDesign.scala"
+  }
+]

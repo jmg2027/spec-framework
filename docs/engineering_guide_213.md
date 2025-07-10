@@ -32,7 +32,7 @@ graph TD
     B \--\>|초기 스펙 등록 (.build() 호출 시)| F  
     F \--\>|5. FIRRTL Elaboration (향후 구현)| G(FIRRTL IR with enriched Tags)  
     G \--\>|6. SpecPathTransform (향후 구현)| H(최종 Tag 정보 보강)  
-    H & F \--\>|7. exportSpecIndex SBT Task| I(SpecIndex.json & ModuleIndex.json 생성)  
+    H & F \--\>|7. exportSpecIndex SBT Task| I(SpecIndex.json & TagIndex.json 생성)
     I \--\>|8. specLint SBT Task (향후 구현)| J(스펙 정합성 검사)  
     I & K\[외부 검증 로그\] \--\>|9. reportGen SBT Task (향후 구현)| L(HTML/PDF 보고서)
 
@@ -174,13 +174,13 @@ spec-plugin은 SBT 빌드 시스템에 통합되어 스펙 정보 추출 및 보
 ### **5.1. SBT 태스크 정의**
 
 * **exportSpecIndex (taskKey)**:  
-  * **역할:** SpecRegistry에 수집된 HardwareSpecification 객체들과 Tag 객체들을 조합하여 SpecIndex.json과 ModuleIndex.json 파일을 생성합니다.  
+  * **역할:** SpecRegistry에 수집된 HardwareSpecification 객체들과 Tag 객체들을 조합하여 SpecIndex.json과 TagIndex.json 파일을 생성합니다.
   * **구현 상세:**  
     * SpecRegistry.allSpecs에서 모든 스펙 정의를 가져옵니다.  
     * SpecRegistry.allTags에서 @LocalSpec 태그 정보를 가져옵니다.  
     * 두 정보를 스펙 id를 기준으로 매핑하여 각 스펙 엔트리(SpecIndex.json의 각 원소)에 해당 instancePaths 정보를 채워 넣습니다.  
     * SpecIndexEntry 케이스 클래스의 macroRW를 사용하여 스펙 데이터와 Tag 데이터를 SpecIndex.json으로 직렬화합니다. instancePaths 내 각 맵에 scalaDeclarationPath 필드를 포함합니다.  
-    * ModuleIndex.json은 allTags를 기준으로 모듈 이름(fullyQualifiedModuleName)을 키로 하는 **맵 형태**(Map\[String, Map\[String, List\[String\]\]\])로 스펙 목록을 집계하여 생성합니다.  
+    * TagIndex.json은 allTags를 기준으로 모듈 이름(fullyQualifiedModuleName)을 키로 하는 **맵 형태**(Map\[String, Map\[String, List\[String\]\]\])로 스펙 목록을 집계하여 생성합니다.
     * MetaFile.setBaseDir 호출을 통해 design/build.sbt에서 exportSpecIndex 태스크 실행 시 출력 디렉토리가 명시적으로 MetaFile에 주입되도록 합니다.  
   * upickle.default.write를 사용하여 JSON 형식으로 직렬화하고 파일로 저장합니다.  
 * **specLint (taskKey, 향후 구현)**: SpecIndex.json을 기반으로 스펙 정합성을 검사합니다.  
@@ -456,7 +456,7 @@ addSbtPlugin("your.company" % "spec-plugin" % "0.1.0-SNAPSHOT")
 
 ### **6.4. reportGen 기능 고도화 (향후 구현)**
 
-* HTML/PDF 보고서 생성은 SpecIndex.json과 ModuleIndex.json을 시각적으로 매력적이고 유용한 대시보드 형태로 렌더링하는 작업입니다. 이는 웹 프레임워크(예: Scalatags, Scala.js 기반의 프런트엔드)나 보고서 생성 라이브러리를 활용할 수 있습니다.  
+* HTML/PDF 보고서 생성은 SpecIndex.json과 TagIndex.json을 시각적으로 매력적이고 유용한 대시보드 형태로 렌더링하는 작업입니다. 이는 웹 프레임워크(예: Scalatags, Scala.js 기반의 프런트엔드)나 보고서 생성 라이브러리를 활용할 수 있습니다.
 * 외부 검증 로그(verifications.csv)와의 통합은 CSV 파싱 및 스펙 ID와의 매핑 로직을 포함합니다.
 
 ### **6.5. Scala 3 마이그레이션 로드맵 (장기)**
@@ -514,7 +514,7 @@ org.scala-sbt:scripted-sbt\_2.13:1.10.0와 같은 의존성을 찾을 수 없다
   2. **spec-core와 spec-macros의 build.sbt에 libraryDependencies \+= "org.scala-lang" % "scala-reflect" % scalaVersion.value가 있는지 확인.**  
   3. **SpecCategory의 implicit val rw: ReadWriter\[SpecCategory\] 정의가 명시적인 Reader와 Writer를 사용하여 모든 case object 및 case class를 문자열로 매핑하는지 확인.** (섹션 3.1의 SpecCategory 코드 참고)
 
-### **7.4. design/target/SpecIndex.json 및 ModuleIndex.json이 비어 있거나 올바르지 않게 생성됨**
+### **7.4. design/target/SpecIndex.json 및 TagIndex.json이 비어 있거나 올바르지 않게 생성됨**
 
 JSON 파일에 스펙 정보가 없거나, 내용이 불완전하거나, 형식이 맞지 않는 경우입니다.
 
@@ -522,13 +522,13 @@ JSON 파일에 스펙 정보가 없거나, 내용이 불완전하거나, 형식�
   1. **spec.meta.dir 시스템 속성 누락 또는 MetaFile.setBaseDir 호출 누락:** MetaFile이 파일을 쓸 대상 디렉토리를 알지 못하는 경우.  
   2. **Spec.build() 호출 누락:** 스펙 정의 파일에서 각 스펙 빌더 체이닝의 마지막에 .build() 메서드가 호출되지 않은 경우.  
   3. **SpecRegistry에 스펙/태그가 등록되지 않음:** 매크로나 빌더가 제대로 작동하지 않아 SpecRegistry.addSpec() 또는 SpecRegistry.addTag()가 호출되지 않은 경우.  
-  4. **SpecPlugin.scala의 JSON 생성 로직 오류:** SpecIndexEntry 또는 ModuleIndex.json의 JSON 직렬화 로직에 문제가 있는 경우.  
+  4. **SpecPlugin.scala의 JSON 생성 로직 오류:** SpecIndexEntry 또는 TagIndex.json의 JSON 직렬화 로직에 문제가 있는 경우.
   5. **SBT 캐시 문제:** 이전 빌드의 잔여물이나 잘못된 의존성 정보가 남아있어 올바른 코드가 컴파일되지 않는 경우.  
 * **해결 방법:**  
   1. **design/build.sbt에 Compile / resourceGenerators 태스크 내에서 \_root\_.framework.spec.MetaFile.setBaseDir((Compile / resourceManaged).value / "spec-meta").toPath)를 명시적으로 호출하는지 확인.**  
   2. **모든 스펙 정의 (MyExampleSpecs.scala 등)의 마지막에 .build()가 호출되었는지 확인.**  
   3. **SpecRegistry.addSpec 및 SpecRegistry.addTag가 실행되는지 확인:** MetaFile.scala 및 LocalSpec.scala에 추가된 println (DEBUG 로그)을 통해 컴파일 시점에 이들이 호출되는지 확인합니다.  
-  4. **spec-plugin/src/main/scala/spec/plugin/SpecPlugin.scala 파일이 제가 제공한 최신 버전으로 정확히 일치하는지 확인합니다.** 특히 ModuleIndex.json을 맵 형태로 생성하는 로직과 SpecIndexEntry의 필드 매핑 로직을 주의 깊게 살펴봅니다.  
+  4. **spec-plugin/src/main/scala/spec/plugin/SpecPlugin.scala 파일이 제가 제공한 최신 버전으로 정확히 일치하는지 확인합니다.** 특히 TagIndex.json을 맵 형태로 생성하는 로직과 SpecIndexEntry의 필드 매핑 로직을 주의 깊게 살펴봅니다.
   5. **가장 강력한 SBT 캐시 정리 수행 후 재시도.** (섹션 7.1의 SBT 캐시 삭제 명령 참조)
 
 ### **7.5. scala.jdk.CollectionConverters.\_ vs scala.collection.JavaConverters.\_ 오류**

@@ -15,7 +15,7 @@ object SpecIndex {
     )
 
   // Map: scalaDeclarationPath -> specId
-  lazy val map: Map[String, String] = {
+  def map: Map[String, String] = {
     if (!baseDir.exists || !baseDir.isDirectory) {
       Map.empty
     } else {

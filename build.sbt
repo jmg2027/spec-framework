@@ -20,6 +20,7 @@ lazy val specCore = (project in file("spec-core"))
 
 // spec-macros: Macro implementation for @LocalSpec and compile-time emission
 lazy val specMacros = (project in file("spec-macros"))
+  .dependsOn(specCore)
   .settings(
     name := "spec-macros"
   )

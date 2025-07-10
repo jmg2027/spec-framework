@@ -12,8 +12,8 @@ import scala.collection.JavaConverters._
   * Custom SBT plugin that aggregates the compile‑time‑generated `.spec` and
   * `.tag` files under `resourceManaged/spec-meta/`, then emits two contractual
   * JSON indices:
-  *   • **SpecIndex.json**   – list[HardwareSpecification]
-  *   • **ModuleIndex.json** – list[Tag]
+  *   • **SpecIndex.json** – list[HardwareSpecification]
+  *   • **TagIndex.json**  – list[Tag]
   *
   * ## Usage example (in your design repo `build.sbt`)
   * ```scala
@@ -30,7 +30,7 @@ object SpecPlugin extends AutoPlugin {
 
   object autoImport {
     /** Task key: compile → gather meta → emit JSON indices */
-    val exportSpecIndex = taskKey[Unit]("Emit SpecIndex.json & ModuleIndex.json")
+    val exportSpecIndex = taskKey[Unit]("Emit SpecIndex.json & TagIndex.json")
   }
   import autoImport._
 
@@ -77,8 +77,10 @@ object SpecPlugin extends AutoPlugin {
           Files.walk(metaDir).iterator.asScala
             .filter(isSpec)
             .flatMap { path =>
-              val txt = Files.readString(path)
-              try   Some(uread[HardwareSpecification](txt))
+              val lines     = Files.readAllLines(path).asScala.toList
+              val jsonStart = lines.indexWhere(_.trim.startsWith("{"))
+              val jsonTxt   = if (jsonStart >= 0) lines.drop(jsonStart).mkString("\n") else ""
+              try   Some(uread[HardwareSpecification](jsonTxt))
               catch { case e: Throwable =>
                 log.error(s"[spec-plugin] malformed .spec '${path.getFileName}': ${e.getMessage}")
                 log.trace(e)
@@ -112,19 +114,19 @@ object SpecPlugin extends AutoPlugin {
         // ----------------------------------------------------------------
         val outDir        = (Compile / target).value
         val specIndexFile = outDir / "SpecIndex.json"
-        val modIndexFile  = outDir / "ModuleIndex.json"
+        val tagIndexFile  = outDir / "TagIndex.json"
 
         IO.write(specIndexFile, uwrite(specs.values.toList, indent = 2))
-        IO.write(modIndexFile,  uwrite(tags,              indent = 2))
+        IO.write(tagIndexFile,  uwrite(tags,              indent = 2))
 
-        log.success(s"SpecIndex  → ${specIndexFile.getAbsolutePath}")
-        log.success(s"ModuleIndex→ ${modIndexFile.getAbsolutePath}")
-    }
+        log.success(s"SpecIndex → ${specIndexFile.getAbsolutePath}")
+        log.success(s"TagIndex  → ${tagIndexFile.getAbsolutePath}")
+      }
+    },
 
     /* --------------------------------------------------------------
-     *  Make the test task depend on up‑to‑date JSON indices          
+     *  Make the test task depend on up‑to‑date JSON indices
      * -------------------------------------------------------------- */
-    (Test / test) := (Test / test).dependsOn(exportSpecIndex).value
-    }
+    (Test / test) := (Test / test).dependsOn(exportSpecIndex).value,
   )
 }
