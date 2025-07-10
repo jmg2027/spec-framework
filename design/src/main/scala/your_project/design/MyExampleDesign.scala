@@ -49,10 +49,7 @@ class TestModule extends Module {
     is(0.U) {
       io.out := 0.U
     }
-    // Default case
-    default {
-      io.out := 2.U
-    }
+    // Default case removed for compilation
   }
 }
 

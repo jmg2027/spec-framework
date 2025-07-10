@@ -57,16 +57,21 @@ object SpecEmit {
     c: blackbox.Context,
   )(body: c.Expr[HardwareSpecification]): c.Expr[HardwareSpecification] = {
     import c.universe._
-    // 1. Evaluate the builder expression at compile time (macro JVM)
+    val fqn = c.internal.enclosingOwner.fullName
+
+    // Evaluate the builder expression at compile time
     val spec: HardwareSpecification = try {
       c.eval(c.Expr[HardwareSpecification](c.untypecheck(body.tree.duplicate)))
     } catch {
       case e: Throwable =>
-        c.abort(c.enclosingPosition, s"emitSpec macro failed to evaluate the HardwareSpecification at compile time: ${e.getMessage}")
+        c.abort(c.enclosingPosition,
+          s"emitSpec macro failed to evaluate the HardwareSpecification at compile time: ${e.getMessage}")
     }
-    // 2. Write the .spec file at compile time using MetaFile
-    MetaFile.writeSpec(spec)
-    // 3. Return the original builder expression unchanged (for runtime semantics)
-    body
+
+    val specWithPath = spec.copy(scalaDeclarationPath = Some(fqn))
+    MetaFile.writeSpec(specWithPath)
+
+    val fqnLit = Literal(Constant(fqn))
+    c.Expr[HardwareSpecification](q"{ val _s = $body; _s.copy(scalaDeclarationPath = Some($fqnLit)) }")
   }
 }

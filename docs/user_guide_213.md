@@ -190,7 +190,7 @@ object SpecRegistry {
 3. **빌드 및 분석 파이프라인**: 스펙 파일과 RTL 코드로부터 스펙 정보를 추출하고, 검증하며, 보고서를 생성하는 자동화된 도구 모음입니다.  
    * **Scala 컴파일**: @LocalSpec 매크로 어노테이션 확장이 이 단계에서 이루어지며, 스펙 태그 정보가 SpecRegistry에 등록됩니다.  
    * **FIRRTL Elaboration**: RTL 인스턴스 경로와 같은 정확한 하드웨어 계층 정보가 SpecRegistry에 등록된 Tag 정보에 추가됩니다.  
-   * **exportSpecIndex (SBT Task)**: SpecRegistry에 수집된 모든 HardwareSpecification 객체와 Tag 정보를 결합하여 SpecIndex.json과 ModuleIndex.json 파일을 생성합니다.  
+   * **exportSpecIndex (SBT Task)**: SpecRegistry에 수집된 모든 HardwareSpecification 객체와 Tag 정보를 결합하여 SpecIndex.json과 TagIndex.json 파일을 생성합니다.
    * **specLint (SBT Task, Optional)**: SpecIndex.json을 기반으로 스펙 누락, 사용되지 않는 스펙 등 스펙 관련 규칙을 검사하고 경고/오류를 발생시킵니다.  
    * **Verification Run**: 검증 도구들이 검증 결과 로그를 생성합니다.  
    * **reportGen**: JSON 파일과 검증 로그를 병합하여 HTML 대시보드 및 커버리지 보고서를 생성합니다.
@@ -216,7 +216,7 @@ object SpecRegistry {
 2. **FIRRTL Elaboration**: Chisel 코드로부터 FIRRTL 중간 표현(IR)이 생성됩니다. 이때 FIRRTL 컴파일러 플러그인(또는 커스텀 Transform)이 IR 트리를 순회하며 각 모듈 인스턴스의 실제 계층 경로를 추적합니다.  
 3. **SpecPathTransform**: 이 Transform은 SpecRegistry에 등록된 Tag 정보 중 플레이스홀더로 남아있는 fullyQualifiedModuleName과 hardwareInstancePath 필드를 실제 FIRRTL IR에서 파악된 정보로 업데이트합니다. 예를 들어, Queue 클래스의 인스턴스가 top.subsys.myQueue 경로에 있다면, 해당 Tag의 hardwareInstancePath를 이 경로로 채웁니다.
 
-이 과정을 통해 SpecIndex.json 및 ModuleIndex.json에 포함될 instancePaths 정보가 정확하게 채워집니다.
+이 과정을 통해 SpecIndex.json 및 TagIndex.json에 포함될 instancePaths 정보가 정확하게 채워집니다.
 
 ### **2.3. IDE 통합의 제약 사항 및 해결 방안**
 
@@ -394,6 +394,6 @@ class Queue(depth: Int \= 4, w: Int \= 32\) extends Module {
 exportSpecIndex SBT 태스크는 SpecRegistry에 수집된 HardwareSpecification 객체와 Tag 객체를 기반으로 두 개의 JSON 파일을 생성합니다.
 
 * **SpecIndex.json**: 모든 스펙 정의(HardwareSpecification에서 온 정보)와 해당 스펙이 태그된 RTL 코드의 위치 정보(Tag에서 온 정보)를 연결하여 상세 보고서의 단일 정보원을 제공합니다. 여기서 스펙 id는 스펙 정의와 태그를 연결하는 핵심 키 역할을 합니다. 각 태그된 위치에는 scalaDeclarationPath (어노테이션이 위치한 Scala 선언의 완전 경로)도 포함됩니다.  
-* **ModuleIndex.json**: 각 RTL 모듈(fullyQualifiedModuleName)별로 어떤 스펙들이 태그되어 있는지 요약 정보를 제공하며, Tag 객체들의 리스트가 아닌 모듈 이름을 키로 하는 **JSON 객체(Map\[String, Map\[String, List\[String\]\]) 형태**로 생성됩니다.
+* **TagIndex.json**: 각 RTL 모듈(fullyQualifiedModuleName)별로 어떤 스펙들이 태그되어 있는지 요약 정보를 제공하며, Tag 객체들의 리스트가 아닌 모듈 이름을 키로 하는 **JSON 객체(Map\[String, Map\[String, List\[String\]\]) 형태**로 생성됩니다.
 
 이 JSON 파일들은 specLint 태스크를 통해 스펙의 정합성을 검사하고, reportGen 태스크를 통해 HTML/PDF 보고서 등 시각적인 스펙 현황 보고서를 생성하는 데 활용됩니다.

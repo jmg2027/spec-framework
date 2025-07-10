@@ -8,7 +8,7 @@ import upickle.default.{macroRW, ReadWriter}
  * 이 Tag 객체는 특정 스펙이 RTL 코드의 어느 위치에 태그되었는지를 나타내는 정보를 포함합니다.
  * FIRRTL Transform 단계에서 `fullyQualifiedModuleName`과 `hardwareInstancePath`가 보강됩니다.
  *
- * (수정됨): ModuleIndex.json 스펙에 맞춰 `specFqn` 필드를 제거했습니다.
+ * (수정됨): TagIndex.json 스펙에 맞춰 `specFqn` 필드를 제거했습니다.
  * `fullyQualifiedModuleName`은 @LocalSpec가 적용된 Scala 선언의 완전한 경로를 나타냅니다.
  *
  * @param id
