@@ -16,18 +16,10 @@
 
 ### **1.1. 핵심 데이터 타입의 ReadWriter 정의**
 
-프레임워크의 핵심 데이터 타입인 SpecCategory, Capability, HardwareSpecification, Tag, SpecEntry는 upickle 라이브러리를 통해 JSON 직렬화/역직렬화가 가능하도록 implicit ReadWriter 인스턴스가 정의되어야 합니다. 이들은 framework.spec 패키지 내에 정의됩니다.
+프레임워크의 핵심 데이터 타입인 SpecCategory, Capability, HardwareSpecification, Tag는 upickle 라이브러리를 통해 JSON 직렬화/역직렬화가 가능하도록 implicit ReadWriter 인스턴스가 정의되어야 합니다. 이들은 framework.spec 패키지 내에 정의됩니다.
 
 // src/main/scala/framework/spec/HardwareSpecification.scala  
 package framework.spec
-
-import upickle.default.{ReadWriter, Reader, Writer, macroRW}
-
-// (추가됨): SpecEntry 정의  
-final case class SpecEntry(name: String, value: String)  
-object SpecEntry {  
-  implicit val rw: ReadWriter\[SpecEntry\] \= macroRW  
-}
 
 /\*\*  
  \* HardwareSpecification: 하드웨어 스펙의 구체적인 정의를 나타내는 final case class입니다.  
@@ -46,7 +38,7 @@ final case class HardwareSpecification(
   verifiedBy: Option\[String\],  
   requiredCapabilities: Set\[String\],  
   definitionFile: Option\[String\],  
-  entries: List\[SpecEntry\]  
+  lists: List[(String, String)]
 )  
 object HardwareSpecification {  
   implicit val rw: ReadWriter\[HardwareSpecification\] \= macroRW  

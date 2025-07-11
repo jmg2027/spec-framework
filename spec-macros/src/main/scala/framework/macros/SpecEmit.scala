@@ -11,8 +11,9 @@ import framework.spec.{HardwareSpecification, MetaFile}
  * SpecEmit: Macro utility for emitting hardware specification metadata at
  * compile time.
  *
- * Usage: val mySpec = emitSpec {
- * Spec.CONTRACT(...).capability(...).entry(...).build() }
+ * Usage: val mySpec = spec {
+ *   Spec.CONTRACT(...).desc("...").entry(...).build()
+ * }
  *
  * This macro will:
  *   1. Evaluate the builder expression at compile time (macro JVM), 2. Write
@@ -36,10 +37,10 @@ object SpecEmit {
    *   The same HardwareSpecification as the input, but with a .spec file
    *   emitted at compile time.
    */
-  def emitSpec(body: HardwareSpecification): HardwareSpecification = macro impl
+  def spec(body: HardwareSpecification): HardwareSpecification = macro impl
 
   /**
-   * Macro implementation for emitSpec.
+   * Macro implementation for spec.
    *
    *   1. Evaluates the builder expression at compile time (in the macro JVM).
    *      2. Writes the resulting HardwareSpecification as a .spec file using
@@ -65,13 +66,13 @@ object SpecEmit {
     } catch {
       case e: Throwable =>
         c.abort(c.enclosingPosition,
-          s"emitSpec macro failed to evaluate the HardwareSpecification at compile time: ${e.getMessage}")
+          s"spec macro failed to evaluate the HardwareSpecification at compile time: ${e.getMessage}")
     }
 
-    val specWithPath = spec.copy(scalaDeclarationPath = Some(fqn))
+    val specWithPath = spec.copy(scalaDeclarationPath = fqn)
     MetaFile.writeSpec(specWithPath)
 
     val fqnLit = Literal(Constant(fqn))
-    c.Expr[HardwareSpecification](q"{ val _s = $body; _s.copy(scalaDeclarationPath = Some($fqnLit)) }")
+    c.Expr[HardwareSpecification](q"{ val _s = $body; _s.copy(scalaDeclarationPath = $fqnLit) }")
   }
 }

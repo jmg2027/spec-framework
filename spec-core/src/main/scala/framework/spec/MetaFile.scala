@@ -55,7 +55,7 @@ object MetaFile {
     // Compose .spec file content: header lines (id, scalaDeclarationPath, ...) + JSON
     val header =
       s"id=${spec.id}\n" +
-      spec.scalaDeclarationPath.map(p => s"scalaDeclarationPath=$p\n").getOrElse("")
+      (if (spec.scalaDeclarationPath.nonEmpty) s"scalaDeclarationPath=${spec.scalaDeclarationPath}\n" else "")
     val json = upickle.default.write(spec, indent = 2)
     writeFile(spec.id, "spec", header + json + "\n")
   }
