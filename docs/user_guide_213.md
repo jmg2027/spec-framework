@@ -277,8 +277,11 @@ object MyExampleSpecs {
 * **.related(ids: String\*)**: 직접적인 부모는 아니지만, 개념적으로 밀접하게 관련된 다른 스펙 ID들을 나열합니다. varargs를 사용하여 여러 ID를 한 번에 추가할 수 있습니다.  
 * **.status(s: String)**: 스펙의 현재 상태를 명시합니다 ("DRAFT", "APPROVED", "STABLE" 등).  
 * **.impl(by: String)**: 스펙 구현자를 설정합니다 (예: design.frontend.FetchUnit).  
-* **.verified(by: String)**: 스펙 검증자를 설정합니다 (예: verification.testbench.FetchUnitTB).  
-* **.requiresCaps(ids: String\*)**: 이 스펙(보통 CONTRACT 스펙)이 자신의 기능을 수행하기 위해 요구하는 Capability ID 목록을 명시합니다. varargs를 사용하여 여러 ID를 한 번에 추가할 수 있습니다.  
+* **.verified(by: String)**: 스펙 검증자를 설정합니다 (예: verification.testbench.FetchUnitTB).
+* **.is(refs: HardwareSpecification\*)**: 지정한 다른 스펙 객체와 동등하거나 상속 관계임을 명시합니다. 문자열 ID 대신 스펙 객체를 직접 전달할 수 있습니다.
+* **.has(refs: HardwareSpecification\*)**: 현재 스펙이 포함하는 하위 스펙들을 객체 참조 형태로 선언합니다.
+* **.uses(refs: HardwareSpecification\*)**: CONTRACT 스펙이 의존하거나 사용하는 다른 CONTRACT 스펙을 지정합니다. 스펙 객체 또는 ID를 모두 지원합니다.
+* **.requiresCaps(ids: String\*)**: 이 스펙(보통 CONTRACT 스펙)이 자신의 기능을 수행하기 위해 요구하는 Capability ID 목록을 명시합니다. varargs를 사용하여 여러 ID를 한 번에 추가할 수 있습니다.
 * **.meta(kv: (String,String)\*)**: 스펙에 대한 추가적인 구조화된 정보를 키-값 쌍으로 추가합니다. varargs를 사용하여 여러 쌍을 한 번에 추가할 수 있습니다.  
 * **.entry(name: String, value: String)**: 스펙의 상세 항목을 이름-값 쌍으로 추가합니다. HardwareSpecification의 entries 필드를 채웁니다. 여러 번 호출하여 여러 엔트리를 추가할 수 있습니다.  
 * **.build()**: 스펙 정의 체이닝의 **마지막 메서드**입니다. 이 메서드가 호출될 때 최종 HardwareSpecification 객체가 생성되고, MetaFile에 기록되며 SpecRegistry에 등록됩니다.
