@@ -57,17 +57,12 @@ spec-core는 프레임워크의 데이터 계약을 담당합니다. 이 모듈�
     verifiedBy: Option\[String\],  
     requiredCapabilities: Set\[String\],  
     definitionFile: Option\[String\],  
-    entries: List\[SpecEntry\]  
+      lists: List[(String, String)]
   )  
   object HardwareSpecification {  
     implicit val rw: upickle.default.ReadWriter\[HardwareSpecification\] \= upickle.default.macroRW  
   }
 
-* **SpecEntry**: HardwareSpecification의 entries 필드에 사용되는 name-value 쌍을 나타내는 case class. (일반적으로 HardwareSpecification.scala에 정의)  
-  // spec-core/src/main/scala/framework/spec/HardwareSpecification.scala (SpecEntry 부분 발췌)  
-  final case class SpecEntry(name: String, value: String)  
-  object SpecEntry {  
-    implicit val rw: upickle.default.ReadWriter\[SpecEntry\] \= upickle.default.macroRW  
   }
 
 * **SpecCategory**: 스펙 유형을 분류하는 sealed trait와 object. (일반적으로 HardwareSpecification.scala 파일에 HardwareSpecification과 함께 정의)  

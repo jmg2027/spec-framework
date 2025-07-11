@@ -1,385 +1,237 @@
 [
   {
-    "capability": [],
-    "category": "FUNCTION",
-    "definitionFile": [],
-    "description": "Dummy spec for assignment statement test",
-    "entries": [
-      {
-        "name": "StatementKey",
-        "value": "StatementValue"
-      }
-    ],
-    "id": "DUMMY_ASSIGNN",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [
-      {
-        "name": "Contractual"
-      }
-    ],
     "category": "CONTRACT",
-    "definitionFile": [],
-    "description": "Dummy spec for case class test",
-    "entries": [
-      {
-        "name": "CaseKey",
-        "value": "CaseValue"
-      }
+    "codes": [
+      "```scala\n        println(\"hi\")\n      ```"
     ],
-    "id": "DUMMY_CASE",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [
-      "BASE1",
-      "BASE2"
+    "description": "Spec exercising all builder methods",
+    "drawings": [
+      "diagram.svg"
     ],
-    "relatedToIds": [
-      "REL1"
+    "has": [
+      "DUMMY_OBJ"
     ],
-    "requiredCapabilities": [],
-    "scalaDeclarationPath": [
-      "your_project.specs.MyExampleSpecs.DummyCaseSpec"
+    "id": "COMPLEX",
+    "is": [
+      "TEST_INTERFACE",
+      "DUMMY_STATUS"
     ],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [
-      {
-        "name": "Coverage"
-      }
+    "lists": [
+      [
+        "Key1",
+        "Val1"
+      ],
+      [
+        "Key2",
+        "Val2"
+      ]
     ],
-    "category": "COVERAGE",
-    "definitionFile": [],
-    "description": "Dummy coverage spec",
-    "entries": [
-      {
-        "name": "CovKey",
-        "value": "CovValue"
-      }
+    "notes": [
+      "misc notes"
     ],
-    "id": "DUMMY_COVERAGE",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [
-      "BASE_COV"
-    ],
-    "relatedToIds": [
-      "REL_COV"
-    ],
-    "requiredCapabilities": [],
-    "scalaDeclarationPath": [
-      "your_project.specs.MyExampleSpecs.DummyCoverageSpec"
-    ],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [
-      {
-        "name": "Impl"
-      }
-    ],
-    "category": "FUNCTION",
-    "definitionFile": [],
-    "description": "Dummy spec with impl/verified",
-    "entries": [
-      {
-        "name": "ImplKey",
-        "value": "ImplValue"
-      }
-    ],
-    "id": "DUMMY_IMPL",
-    "implementedBy": [
-      "SomeModule"
-    ],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "scalaDeclarationPath": [
-      "your_project.specs.MyExampleSpecs.DummyImplSpec"
-    ],
-    "status": [],
-    "verifiedBy": [
-      "SomeTest"
-    ]
-  },
-  {
-    "capability": [
-      {
-        "name": "Test"
-      }
-    ],
-    "category": "FUNCTION",
-    "definitionFile": [],
-    "description": "Dummy spec for literal test",
-    "entries": [
-      {
-        "name": "Key",
-        "value": "Value"
-      }
-    ],
-    "id": "DUMMY_LITERAL",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [
-      {
-        "name": "Meta"
-      }
-    ],
-    "category": "INTERFACE",
-    "definitionFile": [],
-    "description": "Dummy spec with metadata and requiredCaps",
-    "entries": [
-      {
-        "name": "MetaKey",
-        "value": "MetaValue"
-      }
-    ],
-    "id": "DUMMY_META",
-    "implementedBy": [],
-    "metadata": {
-      "baz": "qux",
-      "foo": "bar"
-    },
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [
-      "CAP1",
-      "CAP2"
-    ],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [],
-    "category": "PROPERTY",
-    "definitionFile": [],
-    "description": "Dummy spec with multiple entries",
-    "entries": [
-      {
-        "name": "A",
-        "value": "1"
-      },
-      {
-        "name": "B",
-        "value": "2"
-      },
-      {
-        "name": "C",
-        "value": "3"
-      }
-    ],
-    "id": "DUMMY_MULTI",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [],
-    "category": "PROPERTY",
-    "definitionFile": [],
-    "description": "Dummy spec for object test",
-    "entries": [
-      {
-        "name": "ObjKey",
-        "value": "ObjValue"
-      }
-    ],
-    "id": "DUMMY_OBJ",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.ComplexSpec",
     "status": [
       "DRAFT"
     ],
-    "verifiedBy": []
+    "tables": [
+      "|A|B|\n|1|2|"
+    ],
+    "uses": [
+      "TEST_MODULE"
+    ]
   },
   {
-    "capability": [],
-    "category": "RAW:RAW_PREFIX",
-    "definitionFile": [],
-    "description": "Dummy raw spec",
-    "entries": [
-      {
-        "name": "RawKey",
-        "value": "RawValue"
-      }
-    ],
-    "id": "DUMMY_RAW",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "scalaDeclarationPath": [
-      "your_project.specs.MyExampleSpecs.DummyRawSpec"
-    ],
-    "status": [],
-    "verifiedBy": []
-  },
-  {
-    "capability": [
-      {
-        "name": "Status"
-      }
-    ],
     "category": "FUNCTION",
-    "definitionFile": [],
+    "description": "Dummy spec for assignment statement test",
+    "id": "DUMMY_ASSIGNN",
+    "lists": [
+      [
+        "StatementKey",
+        "StatementValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyAssignSpec"
+  },
+  {
+    "category": "CONTRACT",
+    "description": "Dummy spec for case class test",
+    "id": "DUMMY_CASE",
+    "lists": [
+      [
+        "CaseKey",
+        "CaseValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyCaseSpec"
+  },
+  {
+    "category": "COVERAGE",
+    "description": "Dummy coverage spec",
+    "id": "DUMMY_COVERAGE",
+    "lists": [
+      [
+        "CovKey",
+        "CovValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyCoverageSpec"
+  },
+  {
+    "category": "FUNCTION",
+    "description": "Dummy spec with impl/verified",
+    "id": "DUMMY_IMPL",
+    "lists": [
+      [
+        "ImplKey",
+        "ImplValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyImplSpec"
+  },
+  {
+    "category": "FUNCTION",
+    "description": "Dummy spec for literal test",
+    "id": "DUMMY_LITERAL",
+    "lists": [
+      [
+        "Key",
+        "Value"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyLiteralSpec"
+  },
+  {
+    "category": "INTERFACE",
+    "description": "Dummy spec with metadata and requiredCaps",
+    "id": "DUMMY_META",
+    "lists": [
+      [
+        "MetaKey",
+        "MetaValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyMetaSpec"
+  },
+  {
+    "category": "PROPERTY",
+    "description": "Dummy spec with multiple entries",
+    "id": "DUMMY_MULTI",
+    "lists": [
+      [
+        "A",
+        "1"
+      ],
+      [
+        "B",
+        "2"
+      ],
+      [
+        "C",
+        "3"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyMultiEntrySpec"
+  },
+  {
+    "category": "PROPERTY",
+    "description": "Dummy spec for object test",
+    "id": "DUMMY_OBJ",
+    "lists": [
+      [
+        "ObjKey",
+        "ObjValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyObjSpec",
+    "status": [
+      "DRAFT"
+    ]
+  },
+  {
+    "category": "RAW:RAW_PREFIX",
+    "description": "Dummy raw spec",
+    "id": "DUMMY_RAW",
+    "lists": [
+      [
+        "RawKey",
+        "RawValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyRawSpec"
+  },
+  {
+    "category": "FUNCTION",
     "description": "Dummy spec with status and metadata",
-    "entries": [
-      {
-        "name": "StatusKey",
-        "value": "StatusValue"
-      }
-    ],
     "id": "DUMMY_STATUS",
-    "implementedBy": [],
-    "metadata": {
-      "approvedBy": "CI"
-    },
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "scalaDeclarationPath": [
-      "your_project.specs.MyExampleSpecs.DummyStatusSpec"
+    "lists": [
+      [
+        "StatusKey",
+        "StatusValue"
+      ]
     ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyStatusSpec",
     "status": [
       "APPROVED"
-    ],
-    "verifiedBy": []
+    ]
   },
   {
-    "capability": [],
     "category": "FUNCTION",
-    "definitionFile": [],
     "description": "Dummy spec for switch statement test",
-    "entries": [
-      {
-        "name": "StatementKey",
-        "value": "StatementValue"
-      }
-    ],
     "id": "DUMMY_Switch",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
+    "lists": [
+      [
+        "StatementKey",
+        "StatementValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummySwitchSpec"
   },
   {
-    "capability": [],
     "category": "FUNCTION",
-    "definitionFile": [],
     "description": "Dummy spec for when statement test",
-    "entries": [
-      {
-        "name": "StatementKey",
-        "value": "StatementValue"
-      }
-    ],
     "id": "DUMMY_WHEN",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
+    "lists": [
+      [
+        "StatementKey",
+        "StatementValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.DummyWhenSpec"
   },
   {
-    "capability": [],
     "category": "FUNCTION",
-    "definitionFile": [],
     "description": "Test assignment spec for CI coverage",
-    "entries": [
-      {
-        "name": "AssignKey",
-        "value": "AssignValue"
-      }
-    ],
     "id": "TEST_ASSIGN",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
+    "lists": [
+      [
+        "AssignKey",
+        "AssignValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.TestAssignSpec"
   },
   {
-    "capability": [
-      {
-        "name": "Test"
-      }
-    ],
     "category": "INTERFACE",
-    "definitionFile": [],
     "description": "Test interface spec for CI coverage",
-    "entries": [
-      {
-        "name": "InterfaceKey",
-        "value": "InterfaceValue"
-      }
-    ],
     "id": "TEST_INTERFACE",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "status": [],
-    "verifiedBy": []
+    "lists": [
+      [
+        "InterfaceKey",
+        "InterfaceValue"
+      ]
+    ],
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.TestInterfaceSpec"
   },
   {
-    "capability": [
-      {
-        "name": "Test"
-      }
-    ],
     "category": "CONTRACT",
-    "definitionFile": [],
     "description": "Test module spec for CI coverage",
-    "entries": [
-      {
-        "name": "ModuleKey",
-        "value": "ModuleValue"
-      }
-    ],
     "id": "TEST_MODULE",
-    "implementedBy": [],
-    "metadata": {},
-    "parentIds": [],
-    "relatedToIds": [],
-    "requiredCapabilities": [],
-    "scalaDeclarationPath": [
-      "your_project.specs.MyExampleSpecs.TestModuleSpec"
+    "lists": [
+      [
+        "ModuleKey",
+        "ModuleValue"
+      ]
     ],
-    "status": [],
-    "verifiedBy": []
+    "scalaDeclarationPath": "your_project.specs.MyExampleSpecs.TestModuleSpec"
   }
 ]

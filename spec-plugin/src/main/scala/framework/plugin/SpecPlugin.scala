@@ -87,8 +87,11 @@ object SpecPlugin extends AutoPlugin {
                 None
               }
             }
-            .map(s => s.id -> s)
-            .toMap
+            .toList
+            .groupBy(_.id)
+            .map { case (id, list) =>
+              id -> list.find(_.scalaDeclarationPath.nonEmpty).getOrElse(list.head)
+            }
 
         // 3 ──────────────────────────────────────────────────────────────
         // Load **all** Tag objects.

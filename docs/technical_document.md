@@ -16,9 +16,8 @@
 * Spec DSL을 통해 정의:
 
 ```scala
-val contractPacketFilter = emitSpec {
-  CONTRACT("CONTRACT_PACKET_FILTER", "Packet filtering description...")
-    .capability(Capability("PacketFilter"))
+val contractPacketFilter = spec {
+  CONTRACT("CONTRACT_PACKET_FILTER").desc("Packet filtering description...")
     .build()
 }
 ```
@@ -57,7 +56,7 @@ val contractPacketFilter = emitSpec {
 
 ## 3. 컴포넌트 아키텍처
 
-### 3.1 emitSpec 매크로
+### 3.1 spec 매크로
 
 * 사용자의 DSL 표현식을 분석해 Spec 객체를 생성하고 JSON으로 기록
 * 컴파일 타임에 `@SpecMeta` 어노테이션 자동 부착
@@ -89,8 +88,8 @@ class PacketFilter extends Module { ... }
 
 ## 4. 전체 프로그램 동작 시나리오
 
-* 사용자가 Spec을 정의할 때 emitSpec 매크로를 이용하여 Spec 객체를 생성한다.
-* emitSpec 매크로가 Spec 객체에 @SpecMeta 어노테이션을 자동으로 붙이고, 이를 JSON으로 기록한다.
+* 사용자가 Spec을 정의할 때 spec 매크로를 이용하여 Spec 객체를 생성한다.
+* spec 매크로가 Spec 객체에 @SpecMeta 어노테이션을 자동으로 붙이고, 이를 JSON으로 기록한다.
 * 사용자가 RTL 모듈을 구현할 때 @LocalSpec 매크로를 사용하여 해당 모듈과 Spec을 명시적으로 연결한다.
 * @LocalSpec 매크로가 RawTag를 생성하여 TagRegistry에 등록한다.
 * 컴파일 과정이 종료되면, sbt Plugin(spec-plugin)이 TagRegistry의 데이터를 JSON으로 저장하고 추적 인덱스를 만든다.

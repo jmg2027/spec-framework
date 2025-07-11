@@ -15,7 +15,7 @@ The recent enhancement to support `@LocalSpec(specVal)` (i.e., referencing a `va
 ### 1. User Code
 
 ```scala
-val MySpec = emitSpec { ... }.build()
+val MySpec = spec { ... }.build()
 @LocalSpec(MySpec)
 class MyModule extends Module
 ```
@@ -78,7 +78,7 @@ SpecRegistry.addTag(Tag(...))
 ### Macro JVM Runtime (compile-time)
 
 * Executes `c.eval(...)` safely within the macro expansion context.
-* Requires that `val` definitions are pure and safe to evaluate (e.g., emitSpec DSL only).
+* Requires that `val` definitions are pure and safe to evaluate (e.g., spec DSL only).
 
 ### SpecPlugin / Export Task
 
