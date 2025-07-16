@@ -9,3 +9,7 @@ class Queue32 extends Module { … }
 
 sbt test → target/SpecIndex.json
 
+
+## License
+
+This project is proprietary and intended for the exclusive personal use of the repository owner. Forking, distribution, and external contributions are prohibited without explicit written permission.
