@@ -7,18 +7,23 @@
 - All code changes must be validated by running `./publish.sh` at the repository root.
 - Do not run sbt commands directly for testing; always use `./publish.sh`.
 
+
 ## 2. Artifacts & Validation
 
-- After `./publish.sh`, the following files must be created and contain valid JSON:
-  - `design/target/SpecIndex.json`
-  - `design/target/TagIndex.json`
-- Each file must contain at least one entry.
-- The first object in each file must include:
+After `./publish.sh`, the following JSON files must be created and contain valid content:
+  - `SpecIndex.json`
+  - `TagIndex.json`
+
+The output directory for these files is user-configurable via the `spec.meta.dir` system property in your `build.sbt`. By default, they are written to `design/target/`, but you may override this location as needed. Always check your `build.sbt` for the current output path.
+
+Each file must contain at least one entry.
+The first object in each file must include:
   - `SpecIndex.json`: `id`, `category`
   - `TagIndex.json`: `scalaDeclarationPath`, `srcFile`
-- Artifacts must match the golden files after sorting:
-  - `design/golden/SpecIndex.golden.json` vs `design/target/SpecIndex.sorted.json`
-  - `design/golden/TagIndex.golden.json` vs `design/target/TagIndex.sorted.json`
+
+Artifacts must match the golden files after sorting (adjust the paths if you change the output directory):
+  - `design/golden/SpecIndex.golden.json` vs `<output-dir>/SpecIndex.sorted.json`
+  - `design/golden/TagIndex.golden.json` vs `<output-dir>/TagIndex.sorted.json`
 
 ## 3. sbt & Offline Environment
 

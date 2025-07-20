@@ -14,8 +14,7 @@ To build everything offline run:
 ./publish.sh
 ```
 
-After running the script the files `design/target/SpecIndex.json` and
-`design/target/TagIndex.json` will be created.
+After running the script, the files `SpecIndex.json` and `TagIndex.json` will be created in the output directory specified by the `spec.meta.dir` system property in your `build.sbt`. By default, this is `design/target/`, but it may be customized by the user.
 
 See `docs/architecture.md` for an overview, `docs/PLUGIN_USAGE.md` for sbt setup,
 `docs/user_guide_213.md` for usage instructions and `docs/developer_guide.md` for
