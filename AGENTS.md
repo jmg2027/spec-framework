@@ -1,22 +1,35 @@
-# AGENTS instructions
-All code changes must be validated by running `./publish.sh` at the repository root.
-Do not run other sbt commands directly during testing.
-After ./publish.sh completes, confirm that `design/target/SpecIndex.json` and
-`design/target/TagIndex.json` exist and contain valid JSON (e.g. using
-`jq -e`).
-Additionally verify that both JSON files contain at least one entry:
 
-```bash
-jq 'length > 0' design/target/SpecIndex.json
-jq 'length > 0' design/target/TagIndex.json
 
-# Confirm that each file contains the expected object structure
-jq -e '.[0] | has("id") and has("category")' design/target/SpecIndex.json
-jq -e '.[0] | has("scalaDeclarationPath") and has("srcFile")' design/target/TagIndex.json
+# AI Agent Integration Guide
 
-# Compare against golden files (sorted for deterministic ordering)
-jq -S 'sort_by(.id)' design/target/SpecIndex.json > design/target/SpecIndex.sorted.json
-jq -S 'sort_by(.id)' design/target/TagIndex.json  > design/target/TagIndex.sorted.json
-diff -u design/golden/SpecIndex.golden.json design/target/SpecIndex.sorted.json
-diff -u design/golden/TagIndex.golden.json  design/target/TagIndex.sorted.json
-```
+## 1. Build & Test
+
+- All code changes must be validated by running `./publish.sh` at the repository root.
+- Do not run sbt commands directly for testing; always use `./publish.sh`.
+
+## 2. Artifacts & Validation
+
+- After `./publish.sh`, the following files must be created and contain valid JSON:
+  - `design/target/SpecIndex.json`
+  - `design/target/TagIndex.json`
+- Each file must contain at least one entry.
+- The first object in each file must include:
+  - `SpecIndex.json`: `id`, `category`
+  - `TagIndex.json`: `scalaDeclarationPath`, `srcFile`
+- Artifacts must match the golden files after sorting:
+  - `design/golden/SpecIndex.golden.json` vs `design/target/SpecIndex.sorted.json`
+  - `design/golden/TagIndex.golden.json` vs `design/target/TagIndex.sorted.json`
+
+## 3. sbt & Offline Environment
+
+- All sbt commands must be run from `/workspace/spec-framework`.
+- Always use these JVM options:
+  - `-Dsbt.ivy.home=/workspace/.sbt-cache/.ivy2`
+  - `-Dsbt.global.base=/workspace/.sbt-cache/.sbt`
+- The environment is offline; dependencies must be pre-cached.
+- Any change to `build.sbt` or `plugins.sbt` requires a full environment rebuild.
+
+## 4. Maintenance & References
+
+- To regenerate the cache, run `sbt update` locally, archive `.ivy2` and `.sbt`, and upload to `/workspace/.sbt-cache/`.
+- For architecture, usage, and development details, see the `docs/` directory.
