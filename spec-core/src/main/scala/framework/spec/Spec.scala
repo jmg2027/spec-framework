@@ -39,11 +39,63 @@ object Spec {
     def has(refs: Any*): Stage2 = copy(core.copy(has = core.has ++ idsFrom(refs)))
     def uses(refs: Any*): Stage2 = copy(core.copy(uses = core.uses ++ idsFrom(refs, enforceContract = true)))
     def status(s: String): Stage2 = copy(core.copy(status = Some(s)))
-    def entry(name: String, value: String): Stage2 = copy(core.copy(lists = core.lists :+ (name -> value)))
-    def table(t: String): Stage2 = copy(core.copy(tables = core.tables :+ t))
-    def draw(d: String): Stage2 = copy(core.copy(drawings = core.drawings :+ d))
-    def code(c: String): Stage2 = copy(core.copy(codes = core.codes :+ c))
+    
+    // Unified table method with type specification
+    def table(tableType: String, content: String): Stage2 = {
+      val markdown = tableType.toLowerCase match {
+        case "markdown" | "md" => content
+        case "csv" => 
+          val lines = content.split("\n")
+          if (lines.length >= 2) {
+            val header = "| " + lines(0).split(",").mkString(" | ") + " |"
+            val separator = "|" + lines(0).split(",").map(_ => "---").mkString("|") + "|"
+            val rows = lines.drop(1).map(line => "| " + line.split(",").mkString(" | ") + " |").mkString("\n")
+            List(header, separator, rows).mkString("\n")
+          } else content
+        case _ => content // fallback to raw content
+      }
+      copy(core.copy(tables = core.tables :+ markdown))
+    }
+    
+    // Convenience method for structured tables
+    def markdownTable(headers: List[String], rows: List[List[String]]): Stage2 = {
+      val headerRow = "| " + headers.mkString(" | ") + " |"
+      val separator = "|" + headers.map(_ => "---").mkString("|") + "|"
+      val dataRows = rows.map(row => "| " + row.mkString(" | ") + " |").mkString("\n")
+      val markdown = List(headerRow, separator, dataRows).mkString("\n")
+      copy(core.copy(tables = core.tables :+ markdown))
+    }
+    
+    // Unified drawing method with type specification
+    def draw(drawType: String, content: String): Stage2 = {
+      val markdown = drawType.toLowerCase match {
+        case "mermaid" => s"```mermaid\n$content\n```"
+        case "svg" => s"```svg\n$content\n```"
+        case "ascii" | "text" => content
+        case "plantuml" => s"```plantuml\n$content\n```"
+        case _ => content // fallback to raw content
+      }
+      copy(core.copy(drawings = core.drawings :+ markdown))
+    }
+    
+    def code(language: String, content: String): Stage2 = {
+      val markdown = s"```$language\n$content\n```"
+      copy(core.copy(codes = core.codes :+ markdown))
+    }
+    def code(content: String): Stage2 = code("text", content) // default to text
+    
     def note(n: String): Stage2 = copy(core.copy(notes = core.notes :+ n))
+
+    // Entry method supporting both key-value pairs and hierarchical lists
+    def entry(key: String, value: String = ""): Stage2 = {
+      if (value.isEmpty) {
+        // Treat as simple list item (hierarchical level can be indicated with leading spaces in key)
+        copy(core.copy(lists = core.lists :+ (key -> "")))
+      } else {
+        // Key-value pair
+        copy(core.copy(lists = core.lists :+ (key -> value)))
+      }
+    }
 
     def build(scalaDeclarationPath: String = ""): HardwareSpecification = {
       require(!core.id.contains(" "), s"Spec ID '${core.id}' must not contain spaces")

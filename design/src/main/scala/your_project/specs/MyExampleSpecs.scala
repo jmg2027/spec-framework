@@ -123,11 +123,12 @@ object MyExampleSpecs {
       .uses("TEST_MODULE")
       .status("DRAFT")
       .entry("Key1", "Val1").entry("Key2", "Val2")
-      .table("|A|B|\n|1|2|")
-      .draw("diagram.svg")
-      .code("""```scala
-        println("hi")
-      ```""")
+      .entry("- Main Features")
+      .entry("  - Performance")
+      .entry("  - Reliability")
+      .table("markdown", "|Signal|Width|\n|---|---|\n|clk|1|\n|data|32|")
+      .draw("mermaid", "graph TD\nA --> B\nB --> C")
+      .code("scala", """println("hi")""")
       .note("misc notes")
       .build()
   }

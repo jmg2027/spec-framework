@@ -20,8 +20,8 @@ final case class HardwareSpecification(
   has: Set[String] = Set.empty,   // 'has' references (spec IDs)
   uses: Set[String] = Set.empty,  // 'uses' references (spec IDs)
   lists: List[(String, String)] = Nil, // List of key-value entries
-  tables: List[String] = Nil,     // Arbitrary table strings
-  drawings: List[String] = Nil,   // Diagram strings
+  tables: List[String] = Nil,     // Markdown tables
+  drawings: List[String] = Nil,   // Diagrams (markdown, SVG, etc.)
   codes: List[String] = Nil,      // Code snippets (markdown)
   notes: List[String] = Nil,      // Free-form notes
   scalaDeclarationPath: String = "",
