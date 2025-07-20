@@ -1,9 +1,9 @@
 package your_project.specs
 
-import framework.macros.LocalSpec             // @LocalSpec 매크로
-import framework.macros.SpecEmit.spec         // compile-time emission 매크로
-import framework.spec.Spec._                  // DSL 진입점 (FUNCTION, PROPERTY …)
-import framework.spec.Capability              // Capability 심볼
+import framework.macros.LocalSpec             // @LocalSpec macro
+import framework.macros.SpecEmit.spec         // compile-time emission macro
+import framework.spec.Spec._                  // DSL entry point (FUNCTION, PROPERTY …)
+import framework.spec.Capability              // Capability symbol
 import framework.spec.HardwareSpecification
 
 object MyExampleSpecs {
