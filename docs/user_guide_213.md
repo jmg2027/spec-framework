@@ -45,14 +45,14 @@ val BusIntf = spec {
 
 ## 2. Tagging Code
 
-Use the `@LocalSpec("SPEC_ID")` annotation to mark modules, vals or defs that implement or verify a spec.
+Use the `@LocalSpec(spec)` annotation to mark modules, vals or defs that implement or verify a spec.
 
 ```scala
 import chisel3._
 import framework.macros.LocalSpec
 import MySpecs._
 
-@LocalSpec("QUEUE_FUNCTION_001")
+@LocalSpec(contQueueModule)
 class QueueModule extends Module {
   val io = IO(new Bundle {
     val enq = Flipped(Decoupled(UInt(32.W)))
