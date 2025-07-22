@@ -8,6 +8,10 @@ It is organized as several sbt subprojects:
 - **spec-plugin** – sbt plugin for exporting JSON indexes
 - **design** – example project using the framework
 
+The DSL offers categories such as `CONTRACT`, `FUNCTION`, and `INTERFACE`.  The
+`BUNDLE` category can be used to document reusable data structures referenced by
+interfaces.
+
 To build everything offline run:
 
 ```bash

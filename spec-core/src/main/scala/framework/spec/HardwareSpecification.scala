@@ -44,6 +44,7 @@ object HardwareSpecification {
     case object INTERFACE          extends SpecCategory // Interface spec
     case object PARAMETER          extends SpecCategory // Parameter spec
     case object CAPABILITY         extends SpecCategory // Capability spec
+    case object BUNDLE            extends SpecCategory // Bundle spec
     case class RAW(prefix: String) extends SpecCategory // Custom/raw category
 
   // upickle ReadWriter for SpecCategory (string-based encoding)
@@ -57,6 +58,7 @@ object HardwareSpecification {
         case SpecCategory.INTERFACE   => "INTERFACE"
         case SpecCategory.PARAMETER   => "PARAMETER"
         case SpecCategory.CAPABILITY  => "CAPABILITY"
+        case SpecCategory.BUNDLE      => "BUNDLE"
         case SpecCategory.RAW(prefix) => s"RAW:$prefix"
       },
       {
@@ -67,6 +69,7 @@ object HardwareSpecification {
         case "INTERFACE"               => SpecCategory.INTERFACE
         case "PARAMETER"               => SpecCategory.PARAMETER
         case "CAPABILITY"              => SpecCategory.CAPABILITY
+        case "BUNDLE"                  => SpecCategory.BUNDLE
         case s if s.startsWith("RAW:") => SpecCategory.RAW(s.drop(4))
         case other                     =>
           throw new IllegalArgumentException(s"Unknown SpecCategory: $other")
