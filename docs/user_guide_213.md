@@ -24,6 +24,25 @@ object MySpecs {
 
 Call `.build()` at the end so the spec is registered in `SpecRegistry` and written to a meta file.
 
+### BUNDLE Specs
+
+Use the `BUNDLE` category to describe reusable data structures referenced by interfaces.
+
+```scala
+val FetchReq = spec {
+  BUNDLE("BND_FETCH_REQ").desc("Fetch request bundle")
+    .entry("pc", "Program counter [type: UInt, width: 32]")
+    .entry("valid", "Request valid flag [type: Bool]")
+    .build()
+}
+
+val BusIntf = spec {
+  INTERFACE("INTF_BUS").desc("Example interface")
+    .entry("req", "Request channel").has(FetchReq)
+    .build()
+}
+```
+
 ## 2. Tagging Code
 
 Use the `@LocalSpec("SPEC_ID")` annotation to mark modules, vals or defs that implement or verify a spec.

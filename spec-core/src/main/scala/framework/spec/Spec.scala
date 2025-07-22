@@ -11,6 +11,7 @@ object Spec {
   def INTERFACE(id: String): Stage1 = new Stage1(SpecCategory.INTERFACE, id)
   def PARAMETER(id: String): Stage1 = new Stage1(SpecCategory.PARAMETER, id)
   def CAPABILITY(id: String): Stage1= new Stage1(SpecCategory.CAPABILITY, id)
+  def BUNDLE(id: String): Stage1    = new Stage1(SpecCategory.BUNDLE, id)
   def RAW(id: String, prefix: String): Stage1 = new Stage1(SpecCategory.RAW(prefix), id)
 
   // stage1: require description
