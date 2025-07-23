@@ -1,6 +1,6 @@
-# Spec Framework User Guide (Scala 2.13)
+# Spec Framework User Guide (Scala 2.13) - Updated 2025
 
-This guide explains how to define hardware specifications, tag your RTL code and export the JSON index files.  All examples assume Scala 2.13 and sbt.
+This guide explains how to define hardware specifications, tag your RTL code and export the JSON index files. All examples assume Scala 2.13 and sbt.
 
 ## 1. Writing Specifications
 
@@ -18,11 +18,49 @@ object MySpecs {
    .status("DRAFT")
    .meta("author" -> "Alice")
    .entry("Purpose", "Ensures FIFO semantics")
+   .table("markdown", """
+| Property | Value |
+|----------|-------|
+| Latency  | 1 cycle |
+| Depth    | 16 entries |
+""")
    .build()
 }
 ```
 
 Call `.build()` at the end so the spec is registered in `SpecRegistry` and written to a meta file.
+
+### New Features (2025 Update)
+
+#### Enhanced uses() Method
+
+- **PARAMETER specs can now be referenced by any category**:
+
+```scala
+val WidthParam = PARAMETER("WIDTH_PARAM").desc("Bus width parameter").build()
+val TestBundle = BUNDLE("TEST_BUNDLE").uses(WidthParam).build()
+```
+
+- **CONTRACT specs can reference other CONTRACT specs**:
+
+```scala
+val CPUContract = CONTRACT("CPU_CONTRACT").desc("CPU specification").build()
+val SOCContract = CONTRACT("SOC_CONTRACT").uses(CPUContract).build()
+```
+
+#### Improved table() Method
+
+- **Single parameter version** (defaults to markdown):
+
+```scala
+.table("|Col1|Col2|\n|A|B|")
+```
+
+- **Two parameter version** (specify type):
+
+```scala
+.table("mermaid", "graph TD\n  A --> B")
+```
 
 ## 2. Tagging Code
 

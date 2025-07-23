@@ -81,3 +81,82 @@ The `publish.sh` script performs this sequence and runs `exportSpecIndex` in the
 
 Follow the conventions in `docs/SCALADOC_STYLE_GUIDE.md` when writing code and documentation. Consistent headers and scaladoc comments make the generated reports easier to read.
 
+## 2025 Framework Enhancements
+
+### Key Changes Made
+
+1. **Enhanced uses() Method Logic** (spec-core/Spec.scala)
+   - Modified `idsFrom()` method to allow PARAMETER specs in all categories
+   - Added support for CONTRACT-to-CONTRACT references
+   - Improved error messages for invalid relationships
+
+2. **Table Method Overloading** (spec-core/Spec.scala)
+   - Added single parameter `table(content: String)` method
+   - Maintains backward compatibility with `table(type: String, content: String)`
+   - Default table type is "markdown"
+
+3. **Comprehensive Testing** (design/SpecFrameworkTests.scala)
+   - Added test cases for all new relationship types
+   - Verified PARAMETER universal usage
+   - Tested CONTRACT hierarchical relationships
+
+### Implementation Details
+
+#### Enhanced Relationship Logic
+
+```scala
+private def idsFrom(args: Seq[Any], enforceContract: Boolean = false): Set[String] = {
+  args.map {
+    case s: HardwareSpecification =>
+      if (enforceContract) {
+        // PARAMETER can be used by any category
+        if (s.category == SpecCategory.PARAMETER) {
+          s.id
+        }
+        // CONTRACT can use other CONTRACTs
+        else if (core.cat == SpecCategory.CONTRACT && s.category == SpecCategory.CONTRACT) {
+          s.id
+        }
+        // Other combinations are restricted
+        else {
+          throw new IllegalArgumentException(...)
+        }
+      } else {
+        s.id  // No enforcement for is() and has()
+      }
+    // ...
+  }.toSet
+}
+```
+
+#### Table Method Enhancement
+
+```scala
+// Primary method with explicit type
+def table(tableType: String, content: String): Stage2 = {
+  copy(core.copy(tables = core.tables :+ Table(tableType, content)))
+}
+
+// Convenience method with default type
+def table(content: String): Stage2 = table("markdown", content)
+```
+
+### Testing and Validation
+
+All changes have been thoroughly tested with:
+
+- **Compilation tests**: Ensuring all new syntax compiles correctly
+- **Runtime tests**: Verifying spec registration and JSON output
+- **Relationship tests**: Confirming allowed/disallowed spec relationships
+- **Backward compatibility**: Ensuring existing code continues to work
+
+### Future Development Guidelines
+
+When extending the framework:
+
+1. **Maintain Backward Compatibility**: Always provide migration paths
+2. **Test Thoroughly**: Add comprehensive test cases for new features
+3. **Document Changes**: Update all relevant documentation
+4. **Follow Patterns**: Use established code patterns and naming conventions
+5. **Consider Performance**: Ensure changes don't impact build times significantly
+

@@ -24,12 +24,27 @@ object Spec {
     private def idsFrom(args: Seq[Any], enforceContract: Boolean = false): Set[String] = {
       args.map {
         case s: HardwareSpecification =>
-          if (enforceContract && (core.cat != SpecCategory.CONTRACT || s.category != SpecCategory.CONTRACT))
-            throw new IllegalArgumentException("uses is allowed only between CONTRACT specs")
-          s.id
+          if (enforceContract) {
+            // PARAMETER는 모든 카테고리에서 uses 가능
+            if (s.category == SpecCategory.PARAMETER) {
+              s.id
+            }
+            // CONTRACT 간 uses는 허용
+            else if (core.cat == SpecCategory.CONTRACT && s.category == SpecCategory.CONTRACT) {
+              s.id
+            }
+            // 기타 경우는 제한
+            else {
+              throw new IllegalArgumentException(
+                s"uses relationship not allowed between ${core.cat} and ${s.category}. " +
+                s"Only PARAMETER specs can be used by any category, and CONTRACT specs can use other CONTRACT specs."
+              )
+            }
+          } else {
+            s.id
+          }
         case s: String =>
-          if (enforceContract && core.cat != SpecCategory.CONTRACT)
-            throw new IllegalArgumentException("uses is allowed only between CONTRACT specs")
+          // 문자열 참조는 런타임에 검증할 수 없으므로 허용
           s
         case other =>
           throw new IllegalArgumentException(s"Invalid reference: $other")
@@ -41,7 +56,7 @@ object Spec {
     def uses(refs: Any*): Stage2 = copy(core.copy(uses = core.uses ++ idsFrom(refs, enforceContract = true)))
     def status(s: String): Stage2 = copy(core.copy(status = Some(s)))
     
-    // Unified table method with type specification
+    // Unified table method with type specification (primary method)
     def table(tableType: String, content: String): Stage2 = {
       val markdown = tableType.toLowerCase match {
         case "markdown" | "md" => content
@@ -57,6 +72,9 @@ object Spec {
       }
       copy(core.copy(tables = core.tables :+ markdown))
     }
+    
+    // Single parameter table method for backward compatibility
+    def table(content: String): Stage2 = table("markdown", content)
     
     // Convenience method for structured tables
     def markdownTable(headers: List[String], rows: List[List[String]]): Stage2 = {
