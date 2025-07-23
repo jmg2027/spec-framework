@@ -38,20 +38,59 @@ val mySpec = spec {
 
 예시:
 
+
 ```scala
-val contractSpec  = spec { CONTRACT("CORE_REQ").desc("코어 요구 사항").build() }
-val functionSpec  = spec { FUNCTION("ADD_FN").desc("덧셈 기능").build() }
-val bundleSpec    = spec { BUNDLE("REQ_BUNDLE").desc("요청 필드").build() }
-val interfaceSpec = spec {
-  INTERFACE("BUS_IF").desc("버스 인터페이스")
-    .has(bundleSpec)
+val contCoreReq  = spec {
+  CONTRACT("CORE_REQ")
+  .desc("Core requirement")
+   ...
+  .entry("Function", "RISCV ISA compliant configurable core")
+   ...
+  .build()
+}
+
+val funcAddFn  = spec {
+  FUNCTION("ADD_FN")
+  .is(contAlu)
+   ...
+  .desc("Addition function")
+   ...
+  .build() 
+}
+
+val bndAwChannel    = spec { 
+  BUNDLE("AW_CHANNEL")
+  .desc("Write Request")
+  .has(paramAxiBus)
+   ...
+  .entry("id", "Transaction identifier for the write channels")
+  .entry("addr", "Transaction address")
+   ...
+  .build()
+}
+
+val intfAxiBus = spec {
+  INTERFACE("AXI_BUS")
+    .desc("Bus interface")
+     ...
+    .has(bndAwChannel)
+     ...
     .build()
 }
+
+val rawAsyncClockSdc = spec {
+  RAW("RAW_ASYNC_CLOCK", "SDC")
+  .desc("async clock groups in this module/domain")
+   ...
+  .entry("coreClk", "periClk")
+   ...
+  .code("sdc", "set_async_group [ ... ]")
+  .build()
 ```
 
 ## 3. Stage2 메서드
 
-`desc` 를 호출한 이후에는 다음과 같은 메서드들을 사용할 수 있습니다.
+`desc` 를 호출한 이후에는 다음과 같은 메서드들을 사용할 수 있습니다 `build()` 를 제외하면 모두 optional 메서드들입니다..
 
 | 메서드 | 설명 |
 |-------|------|
@@ -65,7 +104,7 @@ val interfaceSpec = spec {
 | `draw(drawType, content)` | mermaid, svg, ascii 등의 그림을 삽입합니다. |
 | `code(language, content)` | 코드 블록을 삽입합니다. 기본 언어는 `text` 입니다. |
 | `note(text)` | 메모 혹은 추가 설명을 남깁니다. |
-| `build(scalaDeclarationPath)` | 스펙을 완성하여 레지스트리에 등록합니다. |
+| `build()` | 스펙을 완성하여 레지스트리에 등록합니다. |
 
 계층형 리스트를 표현할 때는 `entry` 의 첫 번째 인자에 들여쓰기를 포함한 문자열을 사용합니다.
 

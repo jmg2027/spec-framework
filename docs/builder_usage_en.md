@@ -39,19 +39,57 @@ The DSL provides several category constructors. Pick one that matches the type o
 Example usage:
 
 ```scala
-val contractSpec  = spec { CONTRACT("CORE_REQ").desc("Core requirement").build() }
-val functionSpec  = spec { FUNCTION("ADD_FN").desc("Addition function").build() }
-val bundleSpec    = spec { BUNDLE("REQ_BUNDLE").desc("Request fields").build() }
-val interfaceSpec = spec {
-  INTERFACE("BUS_IF").desc("Bus interface")
-    .has(bundleSpec)
+val contCoreReq  = spec {
+  CONTRACT("CORE_REQ")
+  .desc("Core requirement")
+   ...
+  .entry("Function", "RISCV ISA compliant configurable core")
+   ...
+  .build()
+}
+
+val funcAddFn  = spec {
+  FUNCTION("ADD_FN")
+  .is(contAlu)
+   ...
+  .desc("Addition function")
+   ...
+  .build() 
+}
+
+val bndAwChannel    = spec { 
+  BUNDLE("AW_CHANNEL")
+  .desc("Write Request")
+  .has(paramAxiBus)
+   ...
+  .entry("id", "Transaction identifier for the write channels")
+  .entry("addr", "Transaction address")
+   ...
+  .build()
+}
+
+val intfAxiBus = spec {
+  INTERFACE("AXI_BUS")
+    .desc("Bus interface")
+     ...
+    .has(bndAwChannel)
+     ...
     .build()
 }
+
+val rawAsyncClockSdc = spec {
+  RAW("RAW_ASYNC_CLOCK", "SDC")
+  .desc("async clock groups in this module/domain")
+   ...
+  .entry("coreClk", "periClk")
+   ...
+  .code("sdc", "set_async_group [ ... ]")
+  .build()
 ```
 
 ## 3. Stage2 methods
 
-After calling `desc` you can use these methods:
+After calling `desc` you can use these methods - all optional except for build():
 
 | Method | Description |
 |-------|-------------|
@@ -65,7 +103,7 @@ After calling `desc` you can use these methods:
 | `draw(drawType, content)` | Insert a diagram such as mermaid, svg or ascii. |
 | `code(language, content)` | Insert a code block. Default language is `text`. |
 | `note(text)` | Add a note or additional comment. |
-| `build(scalaDeclarationPath)` | Finalize the spec and register it. |
+| `build()` | Finalize the spec and register it. |
 
 For hierarchical lists include indentation in the first argument to `entry`.
 
