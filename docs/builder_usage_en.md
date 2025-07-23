@@ -77,14 +77,25 @@ val intfAxiBus = spec {
     .build()
 }
 
-val rawAsyncClockSdc = spec {
-  RAW("RAW_ASYNC_CLOCK", "SDC")
-  .desc("async clock groups in this module/domain")
-   ...
-  .entry("coreClk", "periClk")
-   ...
-  .code("sdc", "set_async_group [ ... ]")
-  .build()
+// CODEX: RAW("SDC", "RAW_SDC_ASYNC_CLOCK") 이런 식으로 쓰게 하는게 나까?
+val rawSdcAsyncClock = spec {
+  RAW("RAW_SDC_ASYNC_CLOCK", "SDC")
+    .desc("Async-clock groups defined for this module/domain.")
+    .markdownTable(
+      List("Group-A", "Group-B", "Comment"),
+      List(
+        List("coreClk", "periClk", "Core ↔ Peripheral async boundary"),
+        List("coreClk", "dmaClk", "Core ↔ DMA async boundary")
+      )
+    )
+    .code("sdc",
+      """
+        | set_clock_groups -asynchronous \
+        |   -group { coreClk } \
+        |   -group { periClk dmaClk }
+      """.stripMargin)
+    .build()
+}
 ```
 
 ## 3. Stage2 methods
