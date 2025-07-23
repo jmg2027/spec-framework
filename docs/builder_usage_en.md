@@ -77,7 +77,6 @@ val intfAxiBus = spec {
     .build()
 }
 
-// CODEX: RAW("SDC", "RAW_SDC_ASYNC_CLOCK") 이런 식으로 쓰게 하는게 나까?
 val rawSdcAsyncClock = spec {
   RAW("RAW_SDC_ASYNC_CLOCK", "SDC")
     .desc("Async-clock groups defined for this module/domain.")
