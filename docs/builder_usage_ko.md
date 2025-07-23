@@ -20,9 +20,77 @@ val mySpec = spec {
 
 `spec { ... }` 블록 안에서 `build()` 가 호출되면 컴파일 시 메타 파일이 생성되고 런타임 레지스트리에 등록됩니다.
 
-## 2. Stage2 메서드
+## 2. 카테고리
 
-`desc` 를 호출한 이후에는 다음과 같은 메서드들을 사용할 수 있습니다.
+`desc` 를 호출하기 전에 어떤 종류의 스펙인지에 맞는 카테고리 생성 메서드를 골라 사용합니다.
+
+| 카테고리 | 사용법 | 설명 |
+|---------|-------|------|
+| `CONTRACT` | `CONTRACT(id)` | 상위 요구 사항이나 계약을 정의합니다. |
+| `FUNCTION` | `FUNCTION(id)` | 기능이나 알고리즘을 설명합니다. |
+| `PROPERTY` | `PROPERTY(id)` | 속성이나 검증 항목을 명시합니다. |
+| `COVERAGE` | `COVERAGE(id)` | 커버리지 요구 사항을 정의합니다. |
+| `INTERFACE` | `INTERFACE(id)` | 하드웨어 인터페이스를 기술합니다. |
+| `PARAMETER` | `PARAMETER(id)` | 파라미터나 설정 값을 설명합니다. |
+| `CAPABILITY` | `CAPABILITY(id)` | 지원하는 기능을 정의합니다. |
+| `BUNDLE` | `BUNDLE(id)` | 인터페이스에서 참조하는 재사용 가능한 데이터 구조입니다. |
+| `RAW` | `RAW(id, prefix)` | 접두사를 가진 사용자 정의 카테고리입니다. |
+
+예시:
+
+
+```scala
+val contCoreReq  = spec {
+  CONTRACT("CORE_REQ")
+  .desc("Core requirement")
+   ...
+  .entry("Function", "RISCV ISA compliant configurable core")
+   ...
+  .build()
+}
+
+val funcAddFn  = spec {
+  FUNCTION("ADD_FN")
+  .is(contAlu)
+   ...
+  .desc("Addition function")
+   ...
+  .build() 
+}
+
+val bndAwChannel    = spec { 
+  BUNDLE("AW_CHANNEL")
+  .desc("Write Request")
+  .has(paramAxiBus)
+   ...
+  .entry("id", "Transaction identifier for the write channels")
+  .entry("addr", "Transaction address")
+   ...
+  .build()
+}
+
+val intfAxiBus = spec {
+  INTERFACE("AXI_BUS")
+    .desc("Bus interface")
+     ...
+    .has(bndAwChannel)
+     ...
+    .build()
+}
+
+val rawAsyncClockSdc = spec {
+  RAW("RAW_ASYNC_CLOCK", "SDC")
+  .desc("async clock groups in this module/domain")
+   ...
+  .entry("coreClk", "periClk")
+   ...
+  .code("sdc", "set_async_group [ ... ]")
+  .build()
+```
+
+## 3. Stage2 메서드
+
+`desc` 를 호출한 이후에는 다음과 같은 메서드들을 사용할 수 있습니다 `build()` 를 제외하면 모두 optional 메서드들입니다..
 
 | 메서드 | 설명 |
 |-------|------|
@@ -36,7 +104,7 @@ val mySpec = spec {
 | `draw(drawType, content)` | mermaid, svg, ascii 등의 그림을 삽입합니다. |
 | `code(language, content)` | 코드 블록을 삽입합니다. 기본 언어는 `text` 입니다. |
 | `note(text)` | 메모 혹은 추가 설명을 남깁니다. |
-| `build(scalaDeclarationPath)` | 스펙을 완성하여 레지스트리에 등록합니다. |
+| `build()` | 스펙을 완성하여 레지스트리에 등록합니다. |
 
 계층형 리스트를 표현할 때는 `entry` 의 첫 번째 인자에 들여쓰기를 포함한 문자열을 사용합니다.
 
@@ -49,7 +117,7 @@ val spec = FUNCTION("PIPELINE").desc("파이프라인 동작")
   .build()
 ```
 
-## 3. 예시
+## 4. 예시
 
 ```scala
 val example = spec {
