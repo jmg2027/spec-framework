@@ -25,6 +25,16 @@ See `docs/architecture.md` for an overview, `docs/PLUGIN_USAGE.md` for sbt setup
 details on hacking the framework. Coding style conventions are documented in
 `docs/SCALADOC_STYLE_GUIDE.md`.
 
+For English documentation, refer to
+[`docs/plugin_enable_en.md`](docs/plugin_enable_en.md),
+[`docs/builder_usage_en.md`](docs/builder_usage_en.md) and
+[`docs/localspec_usage_en.md`](docs/localspec_usage_en.md).
+
+For Korean documentation, refer to
+[`docs/plugin_enable_ko.md`](docs/plugin_enable_ko.md),
+[`docs/builder_usage_ko.md`](docs/builder_usage_ko.md) and
+[`docs/localspec_usage_ko.md`](docs/localspec_usage_ko.md).
+
 ## License
 
 This project is proprietary and intended for the exclusive personal use of the repository owner.
