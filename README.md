@@ -63,5 +63,6 @@ For detailed information on the new features, see [`docs/enhanced_builder_guide.
 
 ## License
 
-This project is proprietary and intended for the exclusive personal use of the repository owner.
-Forking, distribution, and external contributions are prohibited without explicit written permission.
+This project is licensed under the MIT License.
+Until early 2025 the repository used a proprietary license for asset management between the company and the repository owner. We transitioned to MIT later that year to encourage broader community participation.
+See [LICENSE](LICENSE) for details.
