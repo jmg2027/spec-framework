@@ -11,7 +11,7 @@ import framework.macros.SpecEmit.spec
 import framework.spec.Spec._
 
 val mySpec = spec {
-  CONTRACT("EXAMPLE_ID").desc("예시 스펙")
+  CONTRACT("ExampleSpec").desc("예시 스펙")
     .status("DRAFT")
     .entry("Author", "HW Team")
     .build()
@@ -36,12 +36,17 @@ val mySpec = spec {
 | `BUNDLE` | `BUNDLE(id)` | 인터페이스에서 참조하는 재사용 가능한 데이터 구조입니다. |
 | `RAW` | `RAW(id, prefix)` | 접두사를 가진 사용자 정의 카테고리입니다. |
 
+### 네이밍 규칙
+
+- **항상 PascalCase 식별자를 사용하세요.** `CONTRACT`, `FUNCTION` 등 모든 카테고리는 `AddressGenerationUnit`, `AxiBus`처럼 PascalCase 값을 ID로 사용합니다. 이 값이 DSL, JSON, 참조 코드에서 동일한 정규 ID가 됩니다.
+- **Scala 클래스와 1:1 로 맞추세요.** `@LocalSpec` 으로 연결된 모듈이라면 `CONTRACT` ID를 해당 Scala 클래스의 단순 이름과 완전히 동일하게 지정해야 리플렉션 결과와 일치합니다.
+
 예시:
 
 
 ```scala
 val contCoreReq  = spec {
-  CONTRACT("CORE_REQ")
+  CONTRACT("CoreRequirement")
   .desc("Core requirement")
    ...
   .entry("Function", "RISCV ISA compliant configurable core")
@@ -50,7 +55,7 @@ val contCoreReq  = spec {
 }
 
 val funcAddFn  = spec {
-  FUNCTION("ADD_FN")
+  FUNCTION("AddFunction")
   .is(contAlu)
    ...
   .desc("Addition function")
@@ -58,8 +63,8 @@ val funcAddFn  = spec {
   .build() 
 }
 
-val bndAwChannel    = spec { 
-  BUNDLE("AW_CHANNEL")
+val bndAwChannel    = spec {
+  BUNDLE("AwChannel")
   .desc("Write Request")
   .has(paramAxiBus)
    ...
@@ -70,7 +75,7 @@ val bndAwChannel    = spec {
 }
 
 val intfAxiBus = spec {
-  INTERFACE("AXI_BUS")
+  INTERFACE("AxiBus")
     .desc("Bus interface")
      ...
     .has(bndAwChannel)
@@ -79,7 +84,7 @@ val intfAxiBus = spec {
 }
 
 val rawAsyncClockSdc = spec {
-  RAW("RAW_ASYNC_CLOCK", "SDC")
+  RAW("RawAsyncClock", "SDC")
   .desc("async clock groups in this module/domain")
    ...
   .entry("coreClk", "periClk")
@@ -109,7 +114,7 @@ val rawAsyncClockSdc = spec {
 계층형 리스트를 표현할 때는 `entry` 의 첫 번째 인자에 들여쓰기를 포함한 문자열을 사용합니다.
 
 ```scala
-val spec = FUNCTION("PIPELINE").desc("파이프라인 동작")
+val spec = FUNCTION("Pipeline").desc("파이프라인 동작")
   .entry("- 단계")
   .entry("  - IF")
   .entry("  - ID")
@@ -121,8 +126,8 @@ val spec = FUNCTION("PIPELINE").desc("파이프라인 동작")
 
 ```scala
 val example = spec {
-  INTERFACE("BUS").desc("버스 인터페이스")
-    .is("DMA_CONTROLLER")
+  INTERFACE("Bus").desc("버스 인터페이스")
+    .is("DmaController")
     .entry("addr", "주소 입력")
     .table("csv", "Signal,Width\naddr,32")
     .draw("mermaid", "graph TD; A-->B")
