@@ -8,7 +8,7 @@ import your_project.specs.MyExampleSpecs._
   */
 object ObjectRefExample {
   val exampleSpec =
-    CONTRACT("OBJ_REF_EXAMPLE").desc("Spec with object references")
+    CONTRACT("ObjRefExample").desc("Spec with object references")
       .is(TestInterfaceSpec, DummyStatusSpec)
       .has(DummyObjSpec)
       .uses(TestModuleSpec)

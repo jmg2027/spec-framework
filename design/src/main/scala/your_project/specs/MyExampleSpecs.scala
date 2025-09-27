@@ -12,35 +12,35 @@ object MyExampleSpecs {
   // -----------------------------------------------------------------------------
   // Test module spec for CI coverage
   val TestModuleSpec = spec {
-    CONTRACT("TEST_MODULE").desc("Test module spec for CI coverage")
+    CONTRACT("TestModule").desc("Test module spec for CI coverage")
       .entry("ModuleKey", "ModuleValue")
       .build()
   }
 
   // Test interface spec for CI coverage
   val TestInterfaceSpec = spec {
-    INTERFACE("TEST_INTERFACE").desc("Test interface spec for CI coverage")
+    INTERFACE("TestInterface").desc("Test interface spec for CI coverage")
       .entry("InterfaceKey", "InterfaceValue")
       .build()
   }
 
   // 3. Test assign spec for CI coverage
   val TestAssignSpec = spec {
-    FUNCTION("TEST_ASSIGN").desc("Test assignment spec for CI coverage")
+    FUNCTION("TestAssign").desc("Test assignment spec for CI coverage")
       .entry("AssignKey", "AssignValue")
       .build()
   }
 
   // Minimal FUNCTION spec (literal)
   val DummyLiteralSpec = spec {
-    FUNCTION("DUMMY_LITERAL").desc("Dummy spec for literal test")
+    FUNCTION("DummyLiteral").desc("Dummy spec for literal test")
       .entry("Key", "Value")
       .build()
   }
 
   // PROPERTY spec with noCapability
   val DummyObjSpec = spec {
-    PROPERTY("DUMMY_OBJ").desc("Dummy spec for object test")
+    PROPERTY("DummyObj").desc("Dummy spec for object test")
       .status("DRAFT")
       .entry("ObjKey", "ObjValue")
       .build()
@@ -48,61 +48,61 @@ object MyExampleSpecs {
 
   // CONTRACT spec with parents/related
   val DummyCaseSpec = spec {
-    CONTRACT("DUMMY_CASE").desc("Dummy spec for case class test")
+    CONTRACT("DummyCase").desc("Dummy spec for case class test")
       .entry("CaseKey", "CaseValue")
       .build()
   }
 
   // PARAMETER spec for expression/statement annotation
   val DummyWhenSpec = spec {
-    FUNCTION("DUMMY_WHEN").desc("Dummy spec for when statement test")
+    FUNCTION("DummyWhen").desc("Dummy spec for when statement test")
       .entry("StatementKey", "StatementValue")
       .build()
   }
 
   val DummyAssignSpec = spec {
-    FUNCTION("DUMMY_ASSIGNN").desc("Dummy spec for assignment statement test")
+    FUNCTION("DummyAssign").desc("Dummy spec for assignment statement test")
       .entry("StatementKey", "StatementValue")
       .build()
   }
 
   val DummySwitchSpec = spec {
-    FUNCTION("DUMMY_Switch").desc("Dummy spec for switch statement test")
+    FUNCTION("DummySwitch").desc("Dummy spec for switch statement test")
       .entry("StatementKey", "StatementValue")
       .build()
   }
 
   // INTERFACE spec with metadata and requiredCaps
   val DummyMetaSpec = spec {
-    INTERFACE("DUMMY_META").desc("Dummy spec with metadata and requiredCaps")
+    INTERFACE("DummyMeta").desc("Dummy spec with metadata and requiredCaps")
       .entry("MetaKey", "MetaValue")
       .build()
   }
 
   // RAW spec with custom prefix
   val DummyRawSpec = spec {
-    RAW("DUMMY_RAW", "RAW_PREFIX").desc("Dummy raw spec")
+    RAW("DummyRaw", "RAW_PREFIX").desc("Dummy raw spec")
       .entry("RawKey", "RawValue")
       .build()
   }
 
   // FUNCTION spec with impl/verified
   val DummyImplSpec = spec {
-    FUNCTION("DUMMY_IMPL").desc("Dummy spec with impl/verified")
+    FUNCTION("DummyImpl").desc("Dummy spec with impl/verified")
       .entry("ImplKey", "ImplValue")
       .build()
   }
 
   // PROPERTY spec with multiple entries
   val DummyMultiEntrySpec = spec {
-    PROPERTY("DUMMY_MULTI").desc("Dummy spec with multiple entries")
+    PROPERTY("DummyMulti").desc("Dummy spec with multiple entries")
       .entry("A", "1").entry("B", "2").entry("C", "3")
       .build()
   }
 
   // FUNCTION spec with status and metadata
   val DummyStatusSpec = spec {
-    FUNCTION("DUMMY_STATUS").desc("Dummy spec with status and metadata")
+    FUNCTION("DummyStatus").desc("Dummy spec with status and metadata")
       .status("APPROVED")
       .entry("StatusKey", "StatusValue")
       .build()
@@ -110,17 +110,17 @@ object MyExampleSpecs {
 
   // COVERAGE spec with related and parents
   val DummyCoverageSpec = spec {
-    COVERAGE("DUMMY_COVERAGE").desc("Dummy coverage spec")
+    COVERAGE("DummyCoverage").desc("Dummy coverage spec")
       .entry("CovKey", "CovValue")
       .build()
   }
 
   // Comprehensive spec exercising all DSL builder methods
   val ComplexSpec = spec {
-    CONTRACT("COMPLEX").desc("Spec exercising all builder methods")
-      .is("TEST_INTERFACE", "DUMMY_STATUS")
-      .has("DUMMY_OBJ")
-      .uses("TEST_MODULE")
+    CONTRACT("Complex").desc("Spec exercising all builder methods")
+      .is("TestInterface", "DummyStatus")
+      .has("DummyObj")
+      .uses("TestModule")
       .status("DRAFT")
       .entry("Key1", "Val1").entry("Key2", "Val2")
       .entry("- Main Features")

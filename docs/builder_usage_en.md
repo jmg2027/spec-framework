@@ -11,7 +11,7 @@ import framework.macros.SpecEmit.spec
 import framework.spec.Spec._
 
 val mySpec = spec {
-  CONTRACT("EXAMPLE_ID").desc("Example spec")
+  CONTRACT("ExampleSpec").desc("Example spec")
     .status("DRAFT")
     .entry("Author", "HW Team")
     .build()
@@ -36,11 +36,16 @@ The DSL provides several category constructors. Pick one that matches the type o
 | `BUNDLE` | `BUNDLE(id)` | Reusable data structure referenced by interfaces. |
 | `RAW` | `RAW(id, prefix)` | Custom category with the given prefix. |
 
+### Naming convention
+
+- **Use PascalCase identifiers.** `CONTRACT`, `FUNCTION`, and every other category should be given an identifier like `AddressGenerationUnit` or `AxiBus`. The canonical spec ID is the same PascalCase value across DSL, JSON, and referencing code.
+- **Match Scala classes when bound.** When a spec represents a Scala module annotated with `@LocalSpec`, give the `CONTRACT` the exact simple class name so reflection stays one-to-one.
+
 Example usage:
 
 ```scala
 val contCoreReq  = spec {
-  CONTRACT("CORE_REQ")
+  CONTRACT("CoreRequirement")
   .desc("Core requirement")
    ...
   .entry("Function", "RISCV ISA compliant configurable core")
@@ -49,7 +54,7 @@ val contCoreReq  = spec {
 }
 
 val funcAddFn  = spec {
-  FUNCTION("ADD_FN")
+  FUNCTION("AddFunction")
   .is(contAlu)
    ...
   .desc("Addition function")
@@ -57,8 +62,8 @@ val funcAddFn  = spec {
   .build() 
 }
 
-val bndAwChannel    = spec { 
-  BUNDLE("AW_CHANNEL")
+val bndAwChannel    = spec {
+  BUNDLE("AwChannel")
   .desc("Write Request")
   .has(paramAxiBus)
    ...
@@ -69,7 +74,7 @@ val bndAwChannel    = spec {
 }
 
 val intfAxiBus = spec {
-  INTERFACE("AXI_BUS")
+  INTERFACE("AxiBus")
     .desc("Bus interface")
      ...
     .has(bndAwChannel)
@@ -78,7 +83,7 @@ val intfAxiBus = spec {
 }
 
 val rawSdcAsyncClock = spec {
-  RAW("RAW_SDC_ASYNC_CLOCK", "SDC")
+  RAW("RawSdcAsyncClock", "SDC")
     .desc("Async-clock groups defined for this module/domain.")
     .markdownTable(
       List("Group-A", "Group-B", "Comment"),
@@ -118,7 +123,7 @@ After calling `desc` you can use these methods - all optional except for build()
 For hierarchical lists include indentation in the first argument to `entry`.
 
 ```scala
-val spec = FUNCTION("PIPELINE").desc("Pipeline behavior")
+val spec = FUNCTION("Pipeline").desc("Pipeline behavior")
   .entry("- stages")
   .entry("  - IF")
   .entry("  - ID")
@@ -130,8 +135,8 @@ val spec = FUNCTION("PIPELINE").desc("Pipeline behavior")
 
 ```scala
 val example = spec {
-  INTERFACE("BUS").desc("Bus interface")
-    .is("DMA_CONTROLLER")
+  INTERFACE("Bus").desc("Bus interface")
+    .is("DmaController")
     .entry("addr", "Address input")
     .table("csv", "Signal,Width\naddr,32")
     .draw("mermaid", "graph TD; A-->B")
