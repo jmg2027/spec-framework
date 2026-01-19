@@ -33,31 +33,7 @@ For English documentation, refer to
 For Korean documentation, refer to
 [`docs/plugin_enable_ko.md`](docs/plugin_enable_ko.md),
 [`docs/builder_usage_ko.md`](docs/builder_usage_ko.md) and
-[`docs/localspec_usage_ko.md`](docs/localspec_usage_ko.md).
-
-## 2025 Updates
-
-### Enhanced Features
-
-The Spec Framework has been significantly improved with the following enhancements:
-
-#### 🔄 Relaxed uses() Method Constraints
-
-- **PARAMETER specs** can now be referenced by any category (BUNDLE, FUNCTION, INTERFACE, etc.)
-- **CONTRACT specs** can reference other CONTRACT specs for hierarchical system modeling
-- Better error messages for invalid relationships
-
-#### 📊 Improved table() Method
-
-- **Single parameter version**: `.table(content)` defaults to markdown
-- **Two parameter version**: `.table(type, content)` for explicit format specification
-- Full backward compatibility maintained
-
-#### 🧪 Comprehensive Testing
-
-- All new features thoroughly tested
-- Validation of complex spec relationships
-- Backward compatibility verified
+[`docs/localspec_usage_ko.md`](docs/localspec_usage_ko.md)
 
 For detailed information on the new features, see [`docs/enhanced_builder_guide.md`](docs/enhanced_builder_guide.md).
 
