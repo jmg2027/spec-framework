@@ -15,10 +15,12 @@ object Formal:
   // `cond` is generic so the same macro works for a Scala `Boolean` and a
   // `chisel3.Bool` (or any condition type).
 
-  inline def assertProperty[T](inline spec: HardwareSpecification)(inline cond: T): T =
+  // `cond` is by-value (not inline) so its tree keeps the source positions we
+  // need to record the condition verbatim.
+  inline def assertProperty[T](inline spec: HardwareSpecification)(cond: T): T =
     ${ implAssert('spec, 'cond) }
 
-  inline def coverProperty[T](inline spec: HardwareSpecification)(inline cond: T): T =
+  inline def coverProperty[T](inline spec: HardwareSpecification)(cond: T): T =
     ${ implCover('spec, 'cond) }
 
   def implAssert[T: Type](spec: Expr[HardwareSpecification], cond: Expr[T])(using Quotes): Expr[T] =
@@ -34,21 +36,11 @@ object Formal:
     val pos = Position.ofMacroExpansion
     // Record the verbatim source of the condition (Chisel desugars `a && b` into
     // an unreadable `a.do_&&(b)(using SourceInfo)`); fall back to pretty-printing.
-    val exprText = {
-      import scala.collection.mutable.ListBuffer
-      val poss = ListBuffer.empty[Position]
-      (new TreeAccumulator[Unit] {
-        def foldTree(x: Unit, t: Tree)(owner: Symbol): Unit = {
-          val p = t.pos
-          if (p.end > p.start) poss += p
-          foldOverTree(x, t)(owner)
-        }
-      }).foldTree((), cond.asTerm.underlyingArgument)(Symbol.spliceOwner)
-      val sliced =
-        for { first <- poss.headOption; content <- first.sourceFile.content }
-        yield content.substring(poss.map(_.start).min, poss.map(_.end).max).trim
-      sliced.getOrElse(renderInfix(cond.asTerm.underlyingArgument))
-    }
+    val condTerm = cond.asTerm.underlyingArgument
+    val exprText =
+      condTerm.pos.sourceCode
+        .map(_.trim)
+        .getOrElse(renderInfix(condTerm))
 
     MetaFile.writeTag(
       Tag(
