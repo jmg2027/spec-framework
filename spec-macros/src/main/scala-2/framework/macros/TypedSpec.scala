@@ -84,9 +84,11 @@ object TypedSpec {
       }
     }.map { case (n, t) => (n, typeLabel(t.toString)) }
 
-    // -- completeness against T's public fields -------------------------------
+    // -- completeness against T's *own declared* public fields ----------------
+    // Use declarations (not inherited members) so base classes — e.g. chisel3's
+    // Bundle/Record/Data — do not count as undeclared fields.
     val tpe = weakTypeOf[T]
-    val actual: List[String] = tpe.members.collect {
+    val actual: List[String] = tpe.decls.collect {
       case m: MethodSymbol if m.isGetter && m.isPublic => m.name.decodedName.toString.trim
     }.toList.distinct
     val declaredNames = declared.map(_._1).toSet

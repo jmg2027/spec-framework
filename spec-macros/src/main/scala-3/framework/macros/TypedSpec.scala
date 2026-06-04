@@ -54,8 +54,9 @@ object TypedSpec:
     }.map { case (n, t) => (n, typeLabel(t.show)) }
 
     // -- completeness against T's public fields -------------------------------
+    // own declared fields only, so chisel3's Bundle/Record base fields don't count
     val actual: List[String] =
-      TypeRepr.of[T].typeSymbol.fieldMembers
+      TypeRepr.of[T].typeSymbol.declaredFields
         .filterNot(_.flags.is(Flags.Private))
         .map(_.name.trim).filter(_.nonEmpty)
     val undeclared = actual.filterNot(declared.map(_._1).toSet.contains)

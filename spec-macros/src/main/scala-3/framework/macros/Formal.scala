@@ -12,24 +12,43 @@ import framework.spec.{HardwareSpecification, Tag, MetaFile}
 
 object Formal:
 
-  inline def assertProperty(inline spec: HardwareSpecification)(inline cond: Boolean): Boolean =
+  // `cond` is generic so the same macro works for a Scala `Boolean` and a
+  // `chisel3.Bool` (or any condition type).
+
+  inline def assertProperty[T](inline spec: HardwareSpecification)(inline cond: T): T =
     ${ implAssert('spec, 'cond) }
 
-  inline def coverProperty(inline spec: HardwareSpecification)(inline cond: Boolean): Boolean =
+  inline def coverProperty[T](inline spec: HardwareSpecification)(inline cond: T): T =
     ${ implCover('spec, 'cond) }
 
-  def implAssert(spec: Expr[HardwareSpecification], cond: Expr[Boolean])(using Quotes): Expr[Boolean] =
+  def implAssert[T: Type](spec: Expr[HardwareSpecification], cond: Expr[T])(using Quotes): Expr[T] =
     emit("assert", spec, cond)
 
-  def implCover(spec: Expr[HardwareSpecification], cond: Expr[Boolean])(using Quotes): Expr[Boolean] =
+  def implCover[T: Type](spec: Expr[HardwareSpecification], cond: Expr[T])(using Quotes): Expr[T] =
     emit("cover", spec, cond)
 
-  private def emit(kind: String, spec: Expr[HardwareSpecification], cond: Expr[Boolean])(using Quotes): Expr[Boolean] =
+  private def emit[T: Type](kind: String, spec: Expr[HardwareSpecification], cond: Expr[T])(using Quotes): Expr[T] =
     import quotes.reflect.*
 
     val fqn = Fqn.normalize(spec.asTerm.underlyingArgument.symbol.fullName)
     val pos = Position.ofMacroExpansion
-    val exprText = renderInfix(cond.asTerm.underlyingArgument)
+    // Record the verbatim source of the condition (Chisel desugars `a && b` into
+    // an unreadable `a.do_&&(b)(using SourceInfo)`); fall back to pretty-printing.
+    val exprText = {
+      import scala.collection.mutable.ListBuffer
+      val poss = ListBuffer.empty[Position]
+      (new TreeAccumulator[Unit] {
+        def foldTree(x: Unit, t: Tree)(owner: Symbol): Unit = {
+          val p = t.pos
+          if (p.end > p.start) poss += p
+          foldOverTree(x, t)(owner)
+        }
+      }).foldTree((), cond.asTerm.underlyingArgument)(Symbol.spliceOwner)
+      val sliced =
+        for { first <- poss.headOption; content <- first.sourceFile.content }
+        yield content.substring(poss.map(_.start).min, poss.map(_.end).max).trim
+      sliced.getOrElse(renderInfix(cond.asTerm.underlyingArgument))
+    }
 
     MetaFile.writeTag(
       Tag(

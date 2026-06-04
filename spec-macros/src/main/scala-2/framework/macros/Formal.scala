@@ -30,23 +30,27 @@ import framework.spec.{HardwareSpecification, Tag, MetaFile, SpecIndex}
 
 object Formal {
 
+  // `cond` is generic so the same macro works for a Scala `Boolean` and a
+  // `chisel3.Bool` (or any condition type). The condition is returned unchanged
+  // for wiring into a real assert/cover.
+
   /** Bind PROPERTY `spec` to assertion `cond`; returns `cond` for wiring. */
-  def assertProperty(spec: HardwareSpecification)(cond: Boolean): Boolean = macro implAssert
+  def assertProperty[T](spec: HardwareSpecification)(cond: T): T = macro implAssert[T]
 
   /** Bind COVERAGE `spec` to cover point `cond`; returns `cond` for wiring. */
-  def coverProperty(spec: HardwareSpecification)(cond: Boolean): Boolean = macro implCover
+  def coverProperty[T](spec: HardwareSpecification)(cond: T): T = macro implCover[T]
 
-  def implAssert(c: blackbox.Context)(spec: c.Expr[HardwareSpecification])(
-      cond: c.Expr[Boolean],
-  ): c.Expr[Boolean] = emit(c)("assert")(spec)(cond)
+  def implAssert[T](c: blackbox.Context)(spec: c.Expr[HardwareSpecification])(
+      cond: c.Expr[T],
+  ): c.Expr[T] = emit(c)("assert")(spec)(cond)
 
-  def implCover(c: blackbox.Context)(spec: c.Expr[HardwareSpecification])(
-      cond: c.Expr[Boolean],
-  ): c.Expr[Boolean] = emit(c)("cover")(spec)(cond)
+  def implCover[T](c: blackbox.Context)(spec: c.Expr[HardwareSpecification])(
+      cond: c.Expr[T],
+  ): c.Expr[T] = emit(c)("cover")(spec)(cond)
 
-  private def emit(c: blackbox.Context)(kind: String)(spec: c.Expr[HardwareSpecification])(
-      cond: c.Expr[Boolean],
-  ): c.Expr[Boolean] = {
+  private def emit[T](c: blackbox.Context)(kind: String)(spec: c.Expr[HardwareSpecification])(
+      cond: c.Expr[T],
+  ): c.Expr[T] = {
     import c.universe._
     def abort(m: String): Nothing = c.abort(c.enclosingPosition, m)
 
@@ -65,11 +69,25 @@ object Formal {
       }
 
     val pos = c.enclosingPosition
-    // Render the bound condition into clean infix form (valid for the report AND
-    // directly usable as an SVA expression): `(reqCount - respCount) <= maxOutstanding`.
-    // The typed tree uses method-call form (`a.<=(b)`) and synthetic `This`
-    // qualifiers, so we walk it and re-emit operators infix.
-    val exprText = renderInfix(c)(cond.tree)
+    // Record the condition exactly as the engineer wrote it. The typechecked tree
+    // is unreadable (Chisel desugars `a && b` into `a.do_$amp$amp(b)(implicit
+    // SourceInfo)`), so we recover the verbatim source span from the ranged leaf
+    // positions; only if that fails do we pretty-print the tree.
+    val exprText = {
+      val poss = scala.collection.mutable.ListBuffer.empty[c.universe.Position]
+      (new c.universe.Traverser {
+        override def traverse(t: c.universe.Tree): Unit = {
+          if (t.pos != c.universe.NoPosition && t.pos.isRange) poss += t.pos
+          super.traverse(t)
+        }
+      }).traverse(cond.tree)
+      if (poss.nonEmpty) {
+        val src   = poss.head.source
+        val start = poss.map(_.start).min
+        val end   = poss.map(_.end).max
+        new String(src.content.slice(start, end)).trim
+      } else renderInfix(c)(cond.tree)
+    }
 
     val tag = Tag(
       id                       = id,
@@ -87,7 +105,7 @@ object Formal {
 
     // Return the original condition unchanged: runtime/sim/formal semantics are
     // whatever the caller wires it to (e.g. chisel3.assert(assertProperty(p){c})).
-    c.Expr[Boolean](q"${cond.tree}")
+    c.Expr[T](q"${cond.tree}")
   }
 
   // Set of symbolic operators rendered infix (everything else stays method form).
