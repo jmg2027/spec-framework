@@ -2,18 +2,22 @@
 package framework.plugin
 
 import sbt._, Keys._
-import _root_.framework.spec.{HardwareSpecification, Tag}
-import upickle.default.{read => uread, write => uwrite}
+import _root_.framework.spec.SpecCheck
+import upickle.default.{write => uwrite}
 
 import java.nio.file.{Files, Path}
-import scala.collection.JavaConverters._
 
 /**
   * Custom SBT plugin that aggregates the compile‑time‑generated `.spec` and
-  * `.tag` files under `resourceManaged/spec-meta/`, then emits two contractual
-  * JSON indices:
+  * `.tag` files under `resourceManaged/spec-meta/`, then emits the contractual
+  * artefacts:
   *   • **SpecIndex.json** – list[HardwareSpecification]
   *   • **TagIndex.json**  – list[Tag]
+  *   • **properties.sva** – SVA assert/cover for the bound properties
+  *
+  * The aggregation/resolution/report logic lives in [[framework.spec.SpecCheck]]
+  * (shared with its CLI); this task is a thin sbt wrapper around it so by-value
+  * relations (`@fqn:…`) are resolved identically.
   *
   * ## Usage example (in your design repo `build.sbt`)
   * ```scala
@@ -75,66 +79,22 @@ object SpecPlugin extends AutoPlugin {
       } else {
         log.info(s"[spec-plugin] scanning meta artefacts in ${metaDir.toAbsolutePath}")
 
-        // Helper lambdas for file discovery; keeps the fold below readable
-        def isSpec(p: Path): Boolean = p.toString.endsWith(".spec")
-        def isTag(p:  Path): Boolean = p.toString.endsWith(".tag")
+        // Aggregate + resolve by-value (`@fqn:…`) relations via the shared
+        // SpecCheck logic, so the plugin and the CLI produce identical output.
+        val specs  = SpecCheck.resolveFqns(SpecCheck.loadSpecs(metaDir))
+        val tags   = SpecCheck.loadTags(metaDir)
+        val report = SpecCheck.Report(specs, tags)
 
-        // 2 ──────────────────────────────────────────────────────────────
-        // Load **all** HardwareSpecification objects.
-        // - We **ignore** malformed files but log them verbosely for the user.
-        // - Map by `id` for quick lookup.
-        // ----------------------------------------------------------------
-        val specs: Map[String, HardwareSpecification] =
-          Files.walk(metaDir).iterator.asScala
-            .filter(isSpec)
-            .flatMap { path =>
-              val lines     = Files.readAllLines(path).asScala.toList
-              val jsonStart = lines.indexWhere(_.trim.startsWith("{"))
-              val jsonTxt   = if (jsonStart >= 0) lines.drop(jsonStart).mkString("\n") else ""
-              try   Some(uread[HardwareSpecification](jsonTxt))
-              catch { case e: Throwable =>
-                log.error(s"[spec-plugin] malformed .spec '${path.getFileName}': ${e.getMessage}")
-                log.trace(e)
-                None
-              }
-            }
-            .toList
-            .groupBy(_.id)
-            .map { case (id, list) =>
-              id -> list.find(_.scalaDeclarationPath.nonEmpty).getOrElse(list.head)
-            }
+        val outDir = (Compile / target).value
+        IO.write(outDir / "SpecIndex.json", uwrite(specs, indent = 2))
+        IO.write(outDir / "TagIndex.json",  uwrite(tags,  indent = 2))
+        IO.write(outDir / "properties.sva", report.sva("clk", "reset"))
 
-        // 3 ──────────────────────────────────────────────────────────────
-        // Load **all** Tag objects.
-        // ----------------------------------------------------------------
-        val tags: List[Tag] =
-          Files.walk(metaDir).iterator.asScala
-            .filter(isTag)
-            .flatMap { path =>
-              val txt = Files.readString(path)
-              try   Some(uread[Tag](txt))
-              catch { case e: Throwable =>
-                log.error(s"[spec-plugin] malformed .tag '${path.getFileName}': ${e.getMessage}")
-                log.trace(e)
-                None
-              }
-            }
-            .toList
-
-        log.info(s"[spec-plugin] aggregated   specs = ${specs.size}   tags = ${tags.size}")
-
-        // 4 ──────────────────────────────────────────────────────────────
-        // Emit the *contractual* JSON indices expected by downstream tooling.
-        // ----------------------------------------------------------------
-        val outDir        = (Compile / target).value
-        val specIndexFile = outDir / "SpecIndex.json"
-        val tagIndexFile  = outDir / "TagIndex.json"
-
-        IO.write(specIndexFile, uwrite(specs.values.toList, indent = 2))
-        IO.write(tagIndexFile,  uwrite(tags,              indent = 2))
-
-        log.success(s"SpecIndex → ${specIndexFile.getAbsolutePath}")
-        log.success(s"TagIndex  → ${tagIndexFile.getAbsolutePath}")
+        // Surface the compliance report in the build log.
+        report.render.split("\n").foreach(l => log.info(l))
+        log.success(s"SpecIndex / TagIndex / properties.sva → ${outDir.getAbsolutePath}")
+        if (report.hardViolations > 0)
+          log.error(s"[spec-plugin] ${report.hardViolations} dangling reference(s) — see report above")
       }
     },
 
