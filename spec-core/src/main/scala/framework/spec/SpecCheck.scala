@@ -22,6 +22,9 @@
 package framework.spec
 
 import java.nio.file.{Files, Path, Paths}
+// scala.collection.JavaConverters is the one converters API present on 2.12, 2.13
+// AND 3 (scala.jdk.CollectionConverters does not exist on 2.12). Deprecated on
+// 2.13+/3 but kept for cross-version source compatibility.
 import scala.collection.JavaConverters._
 import upickle.default.{read => uread, write => uwrite}
 

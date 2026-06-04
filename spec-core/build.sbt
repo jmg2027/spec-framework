@@ -3,27 +3,10 @@
 // Project name
 name := "spec-core"
 
-// Library dependencies for core functionality and macro support
-libraryDependencies ++= Seq(
-  "com.lihaoyi" %% "upickle" % "2.0.0", // For JSON serialization
-  "org.scala-lang" % "scala-reflect" % scalaVersion.value // For macros (used by spec-macros)
-)
+// Pure data model + DSL + checker. The only dependency is upickle (which
+// publishes artefacts for Scala 2.12, 2.13 and 3), so this module is macro-free
+// and cross-builds to all three. (The macros live in spec-macros.)
+libraryDependencies += "com.lihaoyi" %% "upickle" % "2.0.0"
 
-// Cross-build for both Scala 2.13.12 and 2.12.19 to support all modules
-crossScalaVersions := Seq("2.13.12", "2.12.19")
-
-// Add -Ymacro-annotations only for Scala 2.13 during compilation
-Compile / compile / scalacOptions := {
-  CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 13)) => Seq("-Ymacro-annotations")
-    case _ => Seq() // No extra options for Scala 2.12
-  }
-}
-
-// Add -Ymacro-annotations for Scaladoc only in Scala 2.13 to avoid doc errors in 2.12
-Compile / doc / scalacOptions := {
-  CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 13)) => Seq("-Ymacro-annotations")
-    case _ => Seq()
-  }
-}
+// Cross-build for Scala 2.13, 2.12 and 3.
+crossScalaVersions := Seq("2.13.12", "2.12.19", "3.3.4")
