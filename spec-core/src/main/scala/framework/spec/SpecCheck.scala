@@ -102,7 +102,7 @@ object SpecCheck {
      * nodes become `assert/cover property`; unbound ones become TODO stubs so the
      * formal gap is visible in the generated file too.
      */
-    def sva: String = {
+    def sva(clock: String, reset: String): String = {
       val descOf  = specs.map(s => s.id -> s.description.replaceAll("\\s+", " ").trim).toMap
       val bound   = tags.filter(t => t.kind == "assert" || t.kind == "cover").sortBy(_.id)
       val sb = new StringBuilder
@@ -110,6 +110,7 @@ object SpecCheck {
       sb.append("// properties.sva — GENERATED from the spec graph by SpecCheck. Do not edit.\n")
       sb.append("//   bound PROPERTY  ⇒ assert property      bound COVERAGE ⇒ cover property\n")
       sb.append("//   unbound PROPERTY/COVERAGE ⇒ TODO stub (declared but not enforced)\n")
+      sb.append(s"//   clock = $clock   reset = $reset   (override with --clock=… / --reset=…)\n")
       sb.append("// ───────────────────────────────────────────────────────────────────────\n")
       sb.append("`ifndef SPEC_PROPERTIES_SVH\n`define SPEC_PROPERTIES_SVH\n\n")
       bound.foreach { t =>
@@ -117,7 +118,7 @@ object SpecCheck {
         val prefix = if (t.kind == "assert") "ap" else "cp"
         sb.append(s"// ${t.id} — ${descOf.getOrElse(t.id, "")}\n")
         sb.append(s"//   bound at ${shortSrc(t.srcFile)}:${t.line}\n")
-        sb.append(s"${prefix}_${t.id}: $kw property (@(posedge clk) disable iff (reset)\n")
+        sb.append(s"${prefix}_${t.id}: $kw property (@(posedge $clock) disable iff ($reset)\n")
         sb.append(s"    (${t.expr}));\n\n")
       }
       if (unenforced.nonEmpty) {
@@ -195,27 +196,44 @@ object SpecCheck {
   // ---- Entry point --------------------------------------------------------
 
   def main(args: Array[String]): Unit = {
-    if (args.isEmpty) {
-      System.err.println("usage: SpecCheck <meta-dir> [<out-dir>]")
+    val flags = args.filter(_.startsWith("--"))
+    val pos   = args.filterNot(_.startsWith("--"))
+    def flagVal(name: String, default: String): String =
+      flags.collectFirst { case f if f.startsWith(s"--$name=") => f.drop(name.length + 3) }.getOrElse(default)
+
+    if (pos.isEmpty) {
+      System.err.println("usage: SpecCheck <meta-dir> [<out-dir>] [--clock=NAME] [--reset=NAME] [--strict]")
+      System.err.println("  --strict : exit non-zero on warnings too (unimplemented / unenforced / incomplete)")
       sys.exit(2)
     }
-    val metaDir = Paths.get(args(0))
+    val metaDir = Paths.get(pos(0))
     if (!Files.isDirectory(metaDir)) {
       System.err.println(s"[SpecCheck] meta dir not found: $metaDir")
       sys.exit(2)
     }
+    val clock  = flagVal("clock", "clk")
+    val reset  = flagVal("reset", "reset")
+    val strict = flags.contains("--strict")
+
     val specs = loadSpecs(metaDir)
     val tags  = loadTags(metaDir)
 
-    val outDir = Paths.get(if (args.length > 1) args(1) else args(0))
+    val outDir = Paths.get(if (pos.length > 1) pos(1) else pos(0))
     Files.createDirectories(outDir)
     val report = Report(specs, tags)
     Files.write(outDir.resolve("SpecIndex.json"), uwrite(specs, indent = 2).getBytes)
     Files.write(outDir.resolve("TagIndex.json"), uwrite(tags, indent = 2).getBytes)
-    Files.write(outDir.resolve("properties.sva"), report.sva.getBytes)
+    Files.write(outDir.resolve("properties.sva"), report.sva(clock, reset).getBytes)
 
     print(report.render)
     println(s"[SpecCheck] indices + properties.sva → ${outDir.toAbsolutePath}")
-    sys.exit(if (report.hardViolations == 0) 0 else 1)
+
+    // Exit policy: dangling refs always fail; --strict also fails on the soft
+    // warnings (useful as a CI gate once a project intends full coverage).
+    val softCount = report.unimplemented.size + report.unenforced.size + report.incompleteBundles.size
+    val failed    = report.hardViolations > 0 || (strict && softCount > 0)
+    if (strict)
+      println(s"[SpecCheck] strict mode: ${report.hardViolations} hard + $softCount soft → ${if (failed) "FAIL" else "PASS"}")
+    sys.exit(if (failed) 1 else 0)
   }
 }

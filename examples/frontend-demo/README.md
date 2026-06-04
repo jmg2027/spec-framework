@@ -29,7 +29,7 @@ below.
 | module        | what it is                                              |
 |---------------|---------------------------------------------------------|
 | `types/`      | `minichisel` shim + bundle types + params (no specs)    |
-| `specs/`      | the spec graph — typed `bundleSpec[T]`, FUNCTIONs, …     |
+| `specs/`      | the spec graph — typed `bundle[T]`, FUNCTIONs, PROPERTYs … |
 | `design/`     | the RTL, anchored to specs via `@LocalSpec` / `assertProperty` |
 
 Compiled in dependency order (`types → specs → design`) so the typed-bundle
@@ -62,9 +62,11 @@ FetchSpecs.scala:46:48: value addr is not a member of frontend.demo.types.FetchR
 did you mean address?
 ```
 
-Completeness is checked against the type's members at compile time:
-`bundle` emits a **compile warning** for undeclared fields (`BND_INSTR_SLOT`
-omits `valid`); `bundleExact` makes the same omission a **compile error**.
+Completeness is checked against the type's members at compile time and is
+**strict by default**: `bundle` makes an undeclared field a **compile error**
+(the spec must describe the whole bundle). `BND_INSTR_SLOT` opts out with
+`bundleLenient` to intentionally leave `valid` undeclared — that downgrades it to
+a **compile warning** plus a checker note.
 
 ## Feature 2 — formal connection
 
@@ -120,6 +122,21 @@ RESULT: PASS (no hard violations)
 Note the division of labour: **field-level type drift never reaches the report —
 it is a compile error.** The report covers the things the compiler *can't* see:
 completeness, implementation coverage, formal coverage, dangling references.
+
+### Checker options
+
+```
+SpecCheck <meta-dir> [<out-dir>] [--clock=NAME] [--reset=NAME] [--strict]
+```
+
+| flag        | effect                                                                  |
+|-------------|-------------------------------------------------------------------------|
+| `--clock=`  | clock signal used in `properties.sva` (default `clk`)                    |
+| `--reset=`  | reset signal used in `properties.sva` (default `reset`)                  |
+| `--strict`  | CI gate: exit non-zero on *warnings* too (unimplemented / unenforced / incomplete), not just dangling refs |
+
+By default only **dangling references** fail the build; the soft warnings are
+informational until a project opts into `--strict`.
 
 ## Mapping to Chisel
 

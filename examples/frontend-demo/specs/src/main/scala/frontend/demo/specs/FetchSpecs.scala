@@ -18,7 +18,7 @@
 package frontend.demo.specs
 
 import framework.macros.SpecEmit.spec
-import framework.macros.TypedSpec.bundle
+import framework.macros.TypedSpec.{bundle, bundleLenient}
 import framework.spec.Spec._
 import frontend.demo.types._
 
@@ -39,7 +39,8 @@ object FetchSpecs {
   // selector tree (`_.addr` ⇒ "addr" : UInt) and emits the `.spec` at compile
   // time. The field selectors are checked against T's actual members — rename a
   // field in `frontend.demo.types` and this file stops compiling. Completeness is
-  // also checked at compile time (a warning here; `bundleExact` makes it an error).
+  // strict by default: every public field must be declared, or it is a compile
+  // error (use `bundleLenient` to downgrade that to a warning).
   // Signature: bundle[T](id, desc, usesParamIds*)(fieldSelectors*)
   val bndFetchReq =
     bundle[FetchRequest]("BND_FETCH_REQUEST", "EPM fetch request",
@@ -49,9 +50,10 @@ object FetchSpecs {
     bundle[FetchResponse]("BND_FETCH_RESPONSE", "EPM fetch response",
       "PARAM_TXNID_WIDTH")(_.data, _.txnId, _.eccOK)
 
-  // INTENTIONALLY incomplete: `valid` is left undeclared → compile warning + checker note.
+  // INTENTIONALLY incomplete: `valid` is left undeclared. `bundleLenient` turns
+  // that into a compile WARNING (+ checker note) instead of an error.
   val bndInstrSlot =
-    bundle[InstrSlot]("BND_INSTR_SLOT", "Issued instruction slot",
+    bundleLenient[InstrSlot]("BND_INSTR_SLOT", "Issued instruction slot",
       "PARAM_PC_WIDTH")(_.instruction, _.pc)
 
   // ---- Interfaces ---------------------------------------------------------

@@ -18,9 +18,12 @@
 //     spec literally cannot name a field that does not exist — and there is no
 //     string to drift from the selector.
 //   • The field TYPE is read from the selector's result type in the tree.
-//   • Completeness is checked against `T`'s members at compile time:
-//       - `bundle`      ⇒ a WARNING (and an `undeclared-fields:` note for the checker)
-//       - `bundleExact` ⇒ a compile ERROR
+//   • Completeness is checked against `T`'s members at compile time. The default
+//     is strict — the spec must describe every public field of the bundle:
+//       - `bundle`        ⇒ undeclared fields are a compile ERROR (source of truth)
+//       - `bundleLenient` ⇒ undeclared fields are a WARNING (+ `undeclared-fields:`
+//                           note for the checker), for bundles with intentionally
+//                           internal fields
 //   • The `.spec` is emitted at COMPILE time (like `spec { … }`), so no runtime
 //     emission step is needed.
 // -----------------------------------------------------------------------------
@@ -32,23 +35,23 @@ import framework.spec.{HardwareSpecification, SpecCategory, MetaFile}
 
 object TypedSpec {
 
-  /** Typed BUNDLE spec; undeclared implementation fields produce a warning. */
+  /** Typed BUNDLE spec; every public field of `T` must be declared (compile error otherwise). */
   def bundle[T](id: String, desc: String, uses: String*)(fields: (T => Any)*): HardwareSpecification =
     macro bundleImpl[T]
 
-  /** Typed BUNDLE spec; undeclared implementation fields produce a compile error. */
-  def bundleExact[T](id: String, desc: String, uses: String*)(fields: (T => Any)*): HardwareSpecification =
-    macro bundleExactImpl[T]
+  /** Typed BUNDLE spec; undeclared fields are a warning, not an error. */
+  def bundleLenient[T](id: String, desc: String, uses: String*)(fields: (T => Any)*): HardwareSpecification =
+    macro bundleLenientImpl[T]
 
   def bundleImpl[T: c.WeakTypeTag](c: blackbox.Context)(
       id: c.Expr[String], desc: c.Expr[String], uses: c.Expr[String]*)(
       fields: c.Expr[T => Any]*): c.Expr[HardwareSpecification] =
-    build(c)(strict = false)(id, desc, uses)(fields)
+    build(c)(strict = true)(id, desc, uses)(fields)
 
-  def bundleExactImpl[T: c.WeakTypeTag](c: blackbox.Context)(
+  def bundleLenientImpl[T: c.WeakTypeTag](c: blackbox.Context)(
       id: c.Expr[String], desc: c.Expr[String], uses: c.Expr[String]*)(
       fields: c.Expr[T => Any]*): c.Expr[HardwareSpecification] =
-    build(c)(strict = true)(id, desc, uses)(fields)
+    build(c)(strict = false)(id, desc, uses)(fields)
 
   private def build[T: c.WeakTypeTag](c: blackbox.Context)(strict: Boolean)(
       id: c.Expr[String], desc: c.Expr[String], uses: Seq[c.Expr[String]])(
