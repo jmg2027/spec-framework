@@ -25,6 +25,9 @@ object IngressBufferSpecs {
   val propNoBeatLoss = spec {
     PROPERTY("PROP_NO_BEAT_LOSS").desc("Every accepted input beat is enqueued (no silent drop under backpressure)").build()
   }
+  val covBackpressure = spec {
+    COVERAGE("COV_BACKPRESSURE").desc("The ingress FIFO fills and back-pressures upstream at least once").build()
+  }
   val contIngressBuffer = spec {
     CONTRACT("CONT_INGRESS_BUFFER").desc("Per-input elastic FIFO providing backpressure and rate decoupling")
       .has(intfIngressIn, intfIngressOut)

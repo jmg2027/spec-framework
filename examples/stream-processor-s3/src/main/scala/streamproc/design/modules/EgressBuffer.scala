@@ -15,3 +15,4 @@ class EgressBuffer(c: SPConfig) extends Module:
 
   localSpec(funcDropFilter)
   assert(assertProperty(propDroppedNotEmitted) { !(out.fire && in.bits.meta.drop) }, "a dropped beat was emitted")
+  cover(coverProperty(covPacketDrop) { in.fire && in.bits.meta.drop }, "a packet was dropped")

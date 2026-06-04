@@ -31,4 +31,5 @@ class Shaper(c: SPConfig) extends Module {
     .elsewhen(!consume && refill) { tokens := tokens + 1.U }
 
   assert(assertProperty(propTokenBounded) { tokens <= c.shaperBurst.U }, "shaper token count exceeded burst")
+  cover(coverProperty(covTokensDrained) { tokens === 0.U }, "shaper ran out of tokens")
 }

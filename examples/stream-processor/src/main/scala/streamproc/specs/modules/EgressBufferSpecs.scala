@@ -23,6 +23,9 @@ object EgressBufferSpecs {
   val propDroppedNotEmitted = spec {
     PROPERTY("PROP_DROPPED_NOT_EMITTED").desc("A beat whose packet was marked drop never appears on the output").build()
   }
+  val covPacketDrop = spec {
+    COVERAGE("COV_PACKET_DROP").desc("At least one packet is dropped by the classifier verdict").build()
+  }
   val contEgressBuffer = spec {
     CONTRACT("CONT_EGRESS_BUFFER").desc("Applies the classifier verdict and buffers the egress stream")
       .has(intfEgressIn, intfEgressOut)

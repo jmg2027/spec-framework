@@ -23,6 +23,9 @@ object ShaperSpecs {
   val propTokenBounded = spec {
     PROPERTY("PROP_TOKEN_BOUNDED").desc("The token count never exceeds the configured burst size").build()
   }
+  val covTokensDrained = spec {
+    COVERAGE("COV_TOKENS_DRAINED").desc("The shaper runs out of tokens and throttles the stream at least once").build()
+  }
   val contShaper = spec {
     CONTRACT("CONT_SHAPER").desc("Optional token-bucket rate shaper (instantiated when enableShaper = true)")
       .has(intfShaperIn, intfShaperOut)

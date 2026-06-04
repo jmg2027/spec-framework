@@ -16,3 +16,4 @@ class Shaper(c: SPConfig) extends Module:
   val tokens = UInt(8)
   localSpec(funcRateLimit)
   assert(assertProperty(propTokenBounded) { tokens <= UInt(c.shaperBurst) }, "shaper token count exceeded burst")
+  cover(coverProperty(covTokensDrained) { tokens === UInt(0) }, "shaper ran out of tokens")

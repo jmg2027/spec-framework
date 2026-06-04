@@ -15,3 +15,4 @@ class IngressBuffer(c: SPConfig) extends Module:
 
   localSpec(funcElasticBuffer)
   assert(assertProperty(propNoBeatLoss) { !(in.fire && !out.ready) }, "ingress dropped an accepted beat")
+  cover(coverProperty(covBackpressure) { in.valid && !in.ready }, "ingress back-pressured")

@@ -35,5 +35,6 @@ package object hdl {
 
   class Module {
     def assert(cond: Bool, msg: String): Unit = ()
+    def cover(cond: Bool, msg: String): Unit  = ()
   }
 }

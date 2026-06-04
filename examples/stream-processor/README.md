@@ -69,6 +69,23 @@ straight from the Chisel bundle.
 | `SPEC.md` | humans — Mermaid graph, coverage, per-node detail + RTL anchors |
 | `target/StreamProcessorTop.fir` | the elaborated FIRRTL (proves it is real Chisel) |
 
+## Spec-driven verification
+
+The 5 properties + 3 coverage points are not just bound in the RTL — they drive a
+**testbench** that reuses the *same spec objects* as checkers, and a **formal
+harness**. `run.sh` runs the simulation; the report gains a verification section:
+
+```
+Verification (spec-driven simulation)   exercised: 8/8 (4000 cycles)
+  PROP_TOKEN_BOUNDED   ✓ passed (4000 cy)      COV_BACKPRESSURE   ✓ covered (974 hits)
+  …                                            COV_TOKENS_DRAINED ○ uncovered  ← real hole
+```
+
+`runMain streamproc.verif.Testbench --inject-bug` breaks the token cap and the
+report shows `PROP_TOKEN_BOUNDED ✗ FAILED @cycle 0`. `SpecCheck` also emits
+`spec_formal.sby` (SymbiYosys) to prove the same properties formally. See
+[`docs/SPEC_DRIVEN_VERIFICATION.md`](../../docs/SPEC_DRIVEN_VERIFICATION.md).
+
 ## Scala 2 / Scala 3
 
 Chisel is published **only for Scala 2.13** (there is no `chisel_3` artefact), so

@@ -27,4 +27,5 @@ class EgressBuffer(c: SPConfig) extends Module {
   out <> q.io.deq
 
   assert(assertProperty(propDroppedNotEmitted) { !(q.io.enq.fire && in.bits.meta.drop) }, "a dropped beat was enqueued to the output")
+  cover(coverProperty(covPacketDrop) { in.fire && in.bits.meta.drop }, "a packet was dropped")
 }

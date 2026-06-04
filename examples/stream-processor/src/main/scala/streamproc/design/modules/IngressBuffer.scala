@@ -22,4 +22,5 @@ class IngressBuffer(c: SPConfig) extends Module {
   out <> q.io.deq
 
   assert(assertProperty(propNoBeatLoss) { !(in.fire && !q.io.enq.fire) }, "ingress dropped an accepted beat")
+  cover(coverProperty(covBackpressure) { in.valid && !in.ready }, "ingress back-pressured")
 }
