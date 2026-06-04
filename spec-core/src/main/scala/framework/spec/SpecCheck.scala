@@ -63,6 +63,17 @@ object SpecCheck {
     specs.map(s => s.copy(is = res(s.is), has = res(s.has), uses = res(s.uses)))
   }
 
+  /**
+   * Resolve `@fqn:` tag ids (emitted on Scala 3, where `@LocalSpec` /
+   * `assertProperty` cannot look up the spec id at compile time because specs are
+   * emitted at run time) back to real spec ids via the declaration-path map.
+   * On Scala 2 tags already carry real ids, so this is a no-op there.
+   */
+  def resolveTagFqns(tags: List[Tag], specs: List[HardwareSpecification]): List[Tag] = {
+    val pathToId = specs.collect { case s if s.scalaDeclarationPath.nonEmpty => s.scalaDeclarationPath -> s.id }.toMap
+    tags.map(t => if (t.id.startsWith("@fqn:")) t.copy(id = pathToId.getOrElse(t.id.drop(5), t.id)) else t)
+  }
+
   def loadTags(metaDir: Path): List[Tag] =
     Files.walk(metaDir).iterator.asScala
       .filter(_.toString.endsWith(".tag"))
@@ -219,12 +230,15 @@ object SpecCheck {
     def flagVal(name: String, default: String): String =
       flags.collectFirst { case f if f.startsWith(s"--$name=") => f.drop(name.length + 3) }.getOrElse(default)
 
-    if (pos.isEmpty) {
+    // meta-dir: first positional arg, else the spec.meta.dir system property.
+    val metaArg = pos.headOption.orElse(sys.props.get("spec.meta.dir"))
+    if (metaArg.isEmpty) {
       System.err.println("usage: SpecCheck <meta-dir> [<out-dir>] [--clock=NAME] [--reset=NAME] [--strict]")
+      System.err.println("  (meta-dir may also come from the spec.meta.dir system property)")
       System.err.println("  --strict : exit non-zero on warnings too (unimplemented / unenforced / incomplete)")
       sys.exit(2)
     }
-    val metaDir = Paths.get(pos(0))
+    val metaDir = Paths.get(metaArg.get)
     if (!Files.isDirectory(metaDir)) {
       System.err.println(s"[SpecCheck] meta dir not found: $metaDir")
       sys.exit(2)
@@ -234,9 +248,9 @@ object SpecCheck {
     val strict = flags.contains("--strict")
 
     val specs = resolveFqns(loadSpecs(metaDir))
-    val tags  = loadTags(metaDir)
+    val tags  = resolveTagFqns(loadTags(metaDir), specs)
 
-    val outDir = Paths.get(if (pos.length > 1) pos(1) else pos(0))
+    val outDir = Paths.get(pos.lift(1).getOrElse(metaArg.get))
     Files.createDirectories(outDir)
     val report = Report(specs, tags)
     Files.write(outDir.resolve("SpecIndex.json"), uwrite(specs, indent = 2).getBytes)

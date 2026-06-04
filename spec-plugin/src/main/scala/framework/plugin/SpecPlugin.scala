@@ -82,7 +82,7 @@ object SpecPlugin extends AutoPlugin {
         // Aggregate + resolve by-value (`@fqn:…`) relations via the shared
         // SpecCheck logic, so the plugin and the CLI produce identical output.
         val specs  = SpecCheck.resolveFqns(SpecCheck.loadSpecs(metaDir))
-        val tags   = SpecCheck.loadTags(metaDir)
+        val tags   = SpecCheck.resolveTagFqns(SpecCheck.loadTags(metaDir), specs)
         val report = SpecCheck.Report(specs, tags)
 
         val outDir = (Compile / target).value
