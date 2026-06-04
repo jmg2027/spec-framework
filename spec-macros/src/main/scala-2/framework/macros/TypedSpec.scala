@@ -43,6 +43,46 @@ object TypedSpec {
   def bundleLenient[T](id: String, desc: String, uses: String*)(fields: (T => Any)*): HardwareSpecification =
     macro bundleLenientImpl[T]
 
+  /**
+   * Typed PARAMETER spec bound to a config field. The field name and type come
+   * from the selector (`_.dataBytes`) — a rename is a compile error — and the
+   * `default` is read from `cfg` at run time, so the spec and the config case
+   * class can no longer drift (single source of truth for parameter defaults).
+   */
+  def paramSpec[T](id: String, desc: String, cfg: T)(sel: T => Any): HardwareSpecification =
+    macro paramImpl[T]
+
+  def paramImpl[T](c: blackbox.Context)(
+      id: c.Expr[String], desc: c.Expr[String], cfg: c.Expr[T])(
+      sel: c.Expr[T => Any]): c.Expr[HardwareSpecification] = {
+    import c.universe._
+    val fieldName = sel.tree match {
+      case Function(_, body) =>
+        def dig(t: Tree): Option[Select] = t match {
+          case s: Select       => Some(s)
+          case Typed(e, _)     => dig(e)
+          case Block(_, e)     => dig(e)
+          case _               => None
+        }
+        dig(body).map(_.name.decodedName.toString)
+          .getOrElse(c.abort(sel.tree.pos, "paramSpec selector must be a simple field access like _.dataBytes"))
+      case _ => c.abort(sel.tree.pos, "paramSpec selector must be a function literal")
+    }
+    val fieldType = sel.tree match {
+      case Function(_, body) => typeLabel(body.tpe.toString)
+      case _                 => "?"
+    }
+    val fqn = c.internal.enclosingOwner.fullName
+    c.Expr[HardwareSpecification](q"""{
+      val _s = _root_.framework.spec.Spec.PARAMETER($id).desc($desc)
+        .entry("name", $fieldName).entry("type", $fieldType)
+        .entry("default", _root_.java.lang.String.valueOf($sel($cfg)))
+        .build().copy(scalaDeclarationPath = $fqn)
+      _root_.framework.spec.MetaFile.writeSpec(_s)
+      _s
+    }""")
+  }
+
   def bundleImpl[T: c.WeakTypeTag](c: blackbox.Context)(
       id: c.Expr[String], desc: c.Expr[String], uses: c.Expr[String]*)(
       fields: c.Expr[T => Any]*): c.Expr[HardwareSpecification] =

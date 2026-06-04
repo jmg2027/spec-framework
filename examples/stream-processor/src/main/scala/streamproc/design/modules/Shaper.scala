@@ -12,10 +12,8 @@ import streamproc.specs.modules.ShaperSpecs._
 class Shaper(c: SPConfig) extends Module {
   localSpec(contShaper)
 
-  val in = IO(Flipped(Decoupled(new TaggedBeat(c))))
-  localSpec(intfShaperIn)
-  val out = IO(Decoupled(new TaggedBeat(c)))
-  localSpec(intfShaperOut)
+  val in = localSpec(intfShaperIn, IO(Flipped(Decoupled(new TaggedBeat(c)))))
+  val out = localSpec(intfShaperOut, IO(Decoupled(new TaggedBeat(c))))
 
   val tokens = RegInit(c.shaperBurst.U(log2Ceil(c.shaperBurst + 1).W))
   localSpec(funcRateLimit)

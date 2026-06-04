@@ -11,10 +11,8 @@ import streamproc.specs.modules.FramerSpecs._
 class Framer(c: SPConfig) extends Module {
   localSpec(contFramer)
 
-  val in = IO(Flipped(Decoupled(new StreamBeat(c))))
-  localSpec(intfFramerIn)
-  val out = IO(Decoupled(new TaggedBeat(c)))
-  localSpec(intfFramerOut)
+  val in = localSpec(intfFramerIn, IO(Flipped(Decoupled(new StreamBeat(c)))))
+  val out = localSpec(intfFramerOut, IO(Decoupled(new TaggedBeat(c))))
 
   val inPacket = RegInit(false.B)
   localSpec(funcFraming)

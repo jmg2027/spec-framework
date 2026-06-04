@@ -12,10 +12,8 @@ import streamproc.specs.modules.ClassifierSpecs._
 class Classifier(c: SPConfig) extends Module {
   localSpec(contClassifier)
 
-  val in = IO(Flipped(Decoupled(new TaggedBeat(c))))
-  localSpec(intfClassifierIn)
-  val out = IO(Decoupled(new TaggedBeat(c)))
-  localSpec(intfClassifierOut)
+  val in = localSpec(intfClassifierIn, IO(Flipped(Decoupled(new TaggedBeat(c)))))
+  val out = localSpec(intfClassifierOut, IO(Decoupled(new TaggedBeat(c))))
 
   // Rule table (defaults to pass-through; a real design would expose a program port).
   val keys = RegInit(VecInit(Seq.tabulate(c.numRules)(i => i.U(c.destWidth.W))))

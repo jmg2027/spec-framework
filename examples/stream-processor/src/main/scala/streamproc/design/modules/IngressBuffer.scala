@@ -11,10 +11,8 @@ import streamproc.specs.modules.IngressBufferSpecs._
 class IngressBuffer(c: SPConfig) extends Module {
   localSpec(contIngressBuffer)
 
-  val in = IO(Flipped(Decoupled(new StreamBeat(c))))
-  localSpec(intfIngressIn)
-  val out = IO(Decoupled(new StreamBeat(c)))
-  localSpec(intfIngressOut)
+  val in = localSpec(intfIngressIn, IO(Flipped(Decoupled(new StreamBeat(c)))))
+  val out = localSpec(intfIngressOut, IO(Decoupled(new StreamBeat(c))))
 
   val q = Module(new Queue(new StreamBeat(c), c.ingressDepth))
   localSpec(funcElasticBuffer)

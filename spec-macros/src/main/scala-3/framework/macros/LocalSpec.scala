@@ -16,7 +16,12 @@ import framework.spec.{HardwareSpecification, Tag, MetaFile}
 inline def localSpec(inline spec: HardwareSpecification): Unit =
   ${ localSpecImpl('spec) }
 
-private def localSpecImpl(spec: Expr[HardwareSpecification])(using Quotes): Expr[Unit] =
+/** Value form: anchor `decl` (e.g. a port) to `spec` and return it, so the tag is
+  * attached to that exact declaration rather than the enclosing module. */
+inline def localSpec[T](inline spec: HardwareSpecification, decl: T): T =
+  ${ localSpecValueImpl('spec, 'decl) }
+
+private def emitLocalTag(spec: Expr[HardwareSpecification])(using Quotes): Unit =
   import quotes.reflect.*
   val specFqn = Fqn.normalize(spec.asTerm.underlyingArgument.symbol.fullName)
   val owner   = Fqn.enclosingDeclPath(Symbol.spliceOwner)
@@ -34,4 +39,9 @@ private def localSpecImpl(spec: Expr[HardwareSpecification])(using Quotes): Expr
       expr                     = "",
     )
   )
-  '{ () }
+
+private def localSpecImpl(spec: Expr[HardwareSpecification])(using Quotes): Expr[Unit] =
+  emitLocalTag(spec); '{ () }
+
+private def localSpecValueImpl[T: Type](spec: Expr[HardwareSpecification], decl: Expr[T])(using Quotes): Expr[T] =
+  emitLocalTag(spec); decl

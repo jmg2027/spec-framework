@@ -22,21 +22,18 @@ These were real blockers/annoyances hit during the build and fixed in-place:
 
 ## 1. High-impact gaps
 
-### 1a. `localSpec` loses per-declaration granularity
-On Scala 3 (and when used on Scala 2) `localSpec(intf)` is a *statement*, so its
-anchor's `scalaDeclarationPath` is the enclosing **module**, not the specific
-port/val it documents. Every interface of a module ends up anchored to the same
-class line. `@LocalSpec` (the annotation) does not have this problem, but it is
-Scala-2-only and experimental/broken on Scala 3.
-**Suggestion:** a value-returning form, `val in = localSpec(intf)(IO(...))`, that
-anchors to the wrapped declaration and threads the value through.
+### 1a. `localSpec` loses per-declaration granularity — ✅ FIXED
+`localSpec(intf)` (statement) anchored to the enclosing module. Added a
+value-returning form `val in = localSpec(intf, IO(...))` that anchors to the
+wrapped declaration and threads the value through (both Scala 2 and 3). Interfaces
+now anchor per-port — `INTF_INGRESS_IN → IngressBuffer.in`, not the class.
 
-### 1b. Parameters are a second source of truth
-`SPConfig(dataBytes = 4, …)` (the real knobs) and `ParamSpecs` (the `PARAMETER`
-specs, `default = "4"`) are **separate** and can drift — exactly the failure mode
-the typed bundles eliminate for fields. There is no `paramSpec[SPConfig](_.dataBytes)`
-equivalent that reads the default/type from the case class.
-**Suggestion:** a typed parameter binding mirroring `bundle[T]`.
+### 1b. Parameters are a second source of truth — ✅ FIXED
+Added `paramSpec[T](id, desc, cfg)(_.field)` (both Scala 2 and 3): the field
+name/type come from the selector (a rename is a compile error) and the `default`
+is read from `cfg` at run time, so the `PARAMETER` spec and the config case class
+can no longer drift. `PARAM_DATA_BYTES` now reports `default=4` read straight from
+`SPConfig()`; renaming the field fails `ParamSpecs` compilation.
 
 ### 1c. Bundle field types drop their width/parameters
 `bundle[StreamBeat](_.data, …)` records `data: UInt` but not `UInt(dataWidth.W)`.

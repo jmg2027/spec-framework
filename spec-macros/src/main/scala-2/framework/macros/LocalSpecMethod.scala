@@ -36,4 +36,10 @@ object LocalSpecMethod {
     c.info(pos, s"[localSpec] tag for '$id'", force = true)
     c.Expr[Unit](q"()")
   }
+
+  /** Value form: emit the tag (anchored to the enclosing val/decl) and return decl. */
+  def implValue[T](c: blackbox.Context)(spec: c.Expr[HardwareSpecification], decl: c.Expr[T]): c.Expr[T] = {
+    impl(c)(spec) // emit the tag with the same id-resolution + position + owner
+    decl
+  }
 }

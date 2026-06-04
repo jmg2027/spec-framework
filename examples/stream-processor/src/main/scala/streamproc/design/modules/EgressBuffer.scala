@@ -11,10 +11,8 @@ import streamproc.specs.modules.EgressBufferSpecs._
 class EgressBuffer(c: SPConfig) extends Module {
   localSpec(contEgressBuffer)
 
-  val in = IO(Flipped(Decoupled(new TaggedBeat(c))))
-  localSpec(intfEgressIn)
-  val out = IO(Decoupled(new StreamBeat(c)))
-  localSpec(intfEgressOut)
+  val in = localSpec(intfEgressIn, IO(Flipped(Decoupled(new TaggedBeat(c)))))
+  val out = localSpec(intfEgressOut, IO(Decoupled(new StreamBeat(c))))
 
   val q = Module(new Queue(new StreamBeat(c), c.egressDepth))
   localSpec(funcDropFilter)

@@ -18,6 +18,34 @@ object TypedSpec:
       inline fields: (T => Any)*): HardwareSpecification =
     ${ bundleImpl[T]('id, 'desc, 'uses, 'fields, '{ false }) }
 
+  /** Typed PARAMETER spec bound to a config field: name/type from the selector
+    * (rename ⇒ compile error), default read from `cfg` at run time (one source). */
+  inline def paramSpec[T](id: String, desc: String, cfg: T)(sel: T => Any): HardwareSpecification =
+    ${ paramImpl[T]('id, 'desc, 'cfg, 'sel) }
+
+  def paramImpl[T: Type](id: Expr[String], desc: Expr[String], cfg: Expr[T], sel: Expr[T => Any])(using Quotes): Expr[HardwareSpecification] =
+    import quotes.reflect.*
+    def digSelect(t: Term): Option[String] = t match
+      case Select(_, name)  => Some(name)
+      case Typed(e, _)      => digSelect(e)
+      case Block(_, e)      => digSelect(e)
+      case Inlined(_, _, e) => digSelect(e)
+      case _                => None
+    val (fname, ftype) = sel.asTerm.underlyingArgument match
+      case Lambda(_, body) => (digSelect(body).getOrElse(report.errorAndAbort("paramSpec selector must be _.field")), typeLabel(body.tpe.show))
+      case other           => digSelect(other) match
+        case Some(n) => (n, "?")
+        case None    => report.errorAndAbort("paramSpec selector must be a function literal _.field")
+    val fqn = Fqn.enclosingDeclPath(Symbol.spliceOwner)
+    '{
+      val _s = framework.spec.Spec.PARAMETER($id).desc($desc)
+        .entry("name", ${ Expr(fname) }).entry("type", ${ Expr(ftype) })
+        .entry("default", String.valueOf($sel($cfg)))
+        .build().copy(scalaDeclarationPath = ${ Expr(fqn) })
+      MetaFile.writeSpec(_s)
+      _s
+    }
+
   def bundleImpl[T: Type](
       id: Expr[String], desc: Expr[String], uses: Expr[Seq[String]],
       fields: Expr[Seq[T => Any]], strict: Expr[Boolean])(using Quotes): Expr[HardwareSpecification] =

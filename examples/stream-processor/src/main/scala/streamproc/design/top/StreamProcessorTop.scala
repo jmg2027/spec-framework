@@ -13,10 +13,8 @@ import streamproc.specs.top.TopSpecs._
 class StreamProcessorTop(c: SPConfig) extends Module {
   localSpec(contStreamProcessor)
 
-  val in = IO(Flipped(Decoupled(new StreamBeat(c))))
-  localSpec(intfStreamIn)
-  val out = IO(Decoupled(new StreamBeat(c)))
-  localSpec(intfStreamOut)
+  val in = localSpec(intfStreamIn, IO(Flipped(Decoupled(new StreamBeat(c)))))
+  val out = localSpec(intfStreamOut, IO(Decoupled(new StreamBeat(c))))
 
   val ingress    = Module(new IngressBuffer(c))
   val framer     = Module(new Framer(c))
