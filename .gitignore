@@ -26,4 +26,6 @@ spec-meta/
 examples/frontend-demo/SpecIndex.json
 examples/frontend-demo/TagIndex.json
 examples/frontend-demo/properties.sva
+examples/frontend-demo/SPEC.md
+examples/plugin-consumer/SPEC.md
 *.bak

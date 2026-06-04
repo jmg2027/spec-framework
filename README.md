@@ -30,6 +30,9 @@ verify the spec graph against the implementation:
 - **Compliance report** — `framework.spec.SpecCheck` aggregates the artefacts,
   resolves relations, and reports implementation/formal coverage, bundle
   completeness, and dangling references (`--strict` fails the build on warnings).
+  It emits machine-readable `SpecIndex.json` / `TagIndex.json` / `properties.sva`
+  **and** a human-readable `SPEC.md` (a GitHub-rendered Mermaid graph + tables;
+  see [`examples/frontend-demo/SPEC.sample.md`](examples/frontend-demo/SPEC.sample.md)).
 
 See [`examples/frontend-demo`](examples/frontend-demo) for a runnable, Chisel-free
 walk-through of all of the above (`./run-demo.sh`, `--drift`, `--ref-drift`).

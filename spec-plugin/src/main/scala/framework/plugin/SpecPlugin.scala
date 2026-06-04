@@ -89,6 +89,7 @@ object SpecPlugin extends AutoPlugin {
         IO.write(outDir / "SpecIndex.json", uwrite(specs, indent = 2))
         IO.write(outDir / "TagIndex.json",  uwrite(tags,  indent = 2))
         IO.write(outDir / "properties.sva", report.sva("clk", "reset"))
+        IO.write(outDir / "SPEC.md", report.markdown)
 
         // Surface the compliance report in the build log.
         report.render.split("\n").foreach(l => log.info(l))

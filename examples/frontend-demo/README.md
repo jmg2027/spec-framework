@@ -159,6 +159,15 @@ Note the division of labour: **field-level type drift never reaches the report â
 it is a compile error.** The report covers the things the compiler *can't* see:
 completeness, implementation coverage, formal coverage, dangling references.
 
+### Human-readable output
+
+Alongside the machine-readable `SpecIndex.json` / `TagIndex.json` / `properties.sva`,
+`SpecCheck` also writes **`SPEC.md`** â€” a self-contained document that renders
+on GitHub with no extra tooling: a coverage summary, a **Mermaid diagram** of the
+spec graph, and a per-node section with descriptions, relations as links, bundle
+field tables, RTL anchors and formal bindings. A committed snapshot is in
+[`SPEC.sample.md`](SPEC.sample.md).
+
 ### Checker options
 
 ```

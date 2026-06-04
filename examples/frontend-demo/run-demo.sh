@@ -58,4 +58,5 @@ echo
   "specCore/runMain framework.spec.SpecCheck $META $OUT"
 
 echo
-echo "### Wrote $OUT/SpecIndex.json, $OUT/TagIndex.json, $OUT/properties.sva"
+echo "### Wrote $OUT/SpecIndex.json, $OUT/TagIndex.json, $OUT/properties.sva, $OUT/SPEC.md"
+echo "### SPEC.md is a human-readable doc (renders on GitHub: Mermaid graph + tables)."
