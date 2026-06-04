@@ -26,7 +26,7 @@ import java.nio.file.{Files, Path, Paths}
 // AND 3 (scala.jdk.CollectionConverters does not exist on 2.12). Deprecated on
 // 2.13+/3 but kept for cross-version source compatibility.
 import scala.collection.JavaConverters._
-import upickle.default.{read => uread, write => uwrite}
+import upickle.default.{read => uread, write => uwrite, ReadWriter, macroRW}
 
 object SpecCheck {
 
@@ -82,6 +82,31 @@ object SpecCheck {
         catch { case _: Throwable => None }
       }
       .toList
+
+  /** Actual field widths of a typed bundle, captured from a constructed instance
+    * (e.g. chisel3 `.getWidth`) by a tool that has the HDL on its classpath. */
+  final case class BundleWidths(id: String, fields: List[(String, String)])
+  object BundleWidths { implicit val rw: ReadWriter[BundleWidths] = macroRW }
+
+  def loadWidths(metaDir: Path): List[BundleWidths] = {
+    val f = metaDir.resolve("BundleWidths.json")
+    if (!Files.exists(f)) Nil
+    else try uread[List[BundleWidths]](Files.readString(f)) catch { case _: Throwable => Nil }
+  }
+
+  /** Replace each typed-bundle field's bare type label with the concrete width
+    * (`UInt` → `UInt(32)`) when a probe supplied it — closing the gap that the
+    * static macro can only see the type, not the config-derived width. */
+  def applyWidths(specs: List[HardwareSpecification], widths: List[BundleWidths]): List[HardwareSpecification] = {
+    val byId = widths.map(w => w.id -> w.fields.toMap).toMap
+    specs.map { s =>
+      byId.get(s.id) match {
+        case Some(fw) if s.category == SpecCategory.BUNDLE =>
+          s.copy(lists = s.lists.map { case (n, t) => (n, fw.getOrElse(n, t)) })
+        case _ => s
+      }
+    }
+  }
 
   /** Load VerifIndex.json (sim/cover results) if a run produced one. */
   def loadVerif(metaDir: Path): List[VerifResult] = {
@@ -450,7 +475,7 @@ object SpecCheck {
     val top    = flagVal("top", "Top")
     val strict = flags.contains("--strict")
 
-    val specs = resolveFqns(loadSpecs(metaDir))
+    val specs = applyWidths(resolveFqns(loadSpecs(metaDir)), loadWidths(metaDir))
     val tags  = resolveTagFqns(loadTags(metaDir), specs)
     val verif = loadVerif(metaDir)
 

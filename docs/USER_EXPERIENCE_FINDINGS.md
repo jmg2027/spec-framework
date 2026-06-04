@@ -35,12 +35,12 @@ is read from `cfg` at run time, so the `PARAMETER` spec and the config case clas
 can no longer drift. `PARAM_DATA_BYTES` now reports `default=4` read straight from
 `SPConfig()`; renaming the field fails `ParamSpecs` compilation.
 
-### 1c. Bundle field types drop their width/parameters
-`bundle[StreamBeat](_.data, …)` records `data: UInt` but not `UInt(dataWidth.W)`.
-Widths are config-derived and never make it into the spec, so the spec can't be
-checked against actual wire widths.
-**Suggestion:** capture the Chisel `Data`'s width at elaboration and fold it into
-the bundle spec.
+### 1c. Bundle field types drop their width/parameters — ✅ FIXED
+The static macro can only see `data: UInt`, not the config-derived width. Added a
+`WidthProbe` (HDL-side) that constructs each bundle and reads `chisel3 .getWidth`,
+writing `BundleWidths.json`; `SpecCheck.applyWidths` merges it so the spec shows
+`data: UInt(32)`, `last: Bool(1)`, etc. (kept out of the Chisel-agnostic core —
+the probe is a thin HDL tool, the merge is a side-file).
 
 ## 2. Authoring ergonomics
 

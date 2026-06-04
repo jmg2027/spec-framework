@@ -17,9 +17,9 @@ echo "### 1/3  Publishing the framework locally (Scala 2.13) …"
 ( cd "$ROOT" && "$SBT" "set ThisBuild / scalafmtOnCompile := false" \
     "++2.13.12" specCore/publishLocal specMacros/publishLocal )
 
-echo "### 2/4  Elaborate (FIRRTL) + spec-driven testbench (model backend → full coverage + functional) …"
+echo "### 2/4  Elaborate (FIRRTL) + capture bundle widths + spec-driven testbench …"
 rm -rf "$HERE"/target/*/resource_managed
-( cd "$HERE" && "$SBT" "runMain streamproc.Elaborate" "runMain streamproc.verif.Testbench" )
+( cd "$HERE" && "$SBT" "runMain streamproc.Elaborate" "runMain streamproc.WidthProbe" "runMain streamproc.verif.Testbench" )
 
 echo "### 3/4  REAL verilator simulation of the same spec assertions (ChiselSim) …"
 #   The verilator run proves the spec assertions on the actual RTL; add --inject-bug
