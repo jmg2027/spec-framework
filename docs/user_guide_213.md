@@ -11,20 +11,18 @@ import framework.spec._
 import Spec._
 
 object MySpecs {
-  val QueueSpec = FUNCTION(
-    id = "QUEUE_FUNCTION_001",
-    desc = "FIFO queue must preserve ordering"
-  ).capability(Capability("Queueing"))
-   .status("DRAFT")
-   .meta("author" -> "Alice")
-   .entry("Purpose", "Ensures FIFO semantics")
-   .table("markdown", """
+  val QueueSpec = FUNCTION("QUEUE_FUNCTION_001")
+    .desc("FIFO queue must preserve ordering")
+    .status("DRAFT")
+    .entry("author", "Alice")
+    .entry("Purpose", "Ensures FIFO semantics")
+    .table("markdown", """
 | Property | Value |
 |----------|-------|
 | Latency  | 1 cycle |
 | Depth    | 16 entries |
 """)
-   .build()
+    .build()
 }
 ```
 

@@ -42,6 +42,17 @@ object SpecPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
 
     /* --------------------------------------------------------------
+     *  Wipe the meta directory before each compile.  The macros emit
+     *  `${id}_${uuid}.spec/.tag` files and never overwrite, so without this a
+     *  renamed or deleted spec id would leave a stale artefact behind and the
+     *  aggregated SpecIndex.json would keep reporting a node that no longer
+     *  exists.  Cleaning here guarantees the index reflects only current sources.
+     * -------------------------------------------------------------- */
+    Compile / compile := (Compile / compile).dependsOn(Def.task {
+      IO.delete((Compile / resourceManaged).value / "spec-meta")
+    }).value,
+
+    /* --------------------------------------------------------------
      *  Task: compile ▶︎ scan *.spec / *.tag ▶︎ write 2 index files   
      * -------------------------------------------------------------- */
     exportSpecIndex := {

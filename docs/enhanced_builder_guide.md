@@ -21,12 +21,12 @@ object MySpecs {
   // Define parameters that can be used by any spec type
   val BusWidth = PARAMETER("BUS_WIDTH")
     .desc("System bus width in bits")
-    .meta("default" -> "32")
+    .entry("default", "32")
     .build()
     
   val ClockFreq = PARAMETER("CLOCK_FREQ")
     .desc("System clock frequency")
-    .meta("default" -> "100MHz")
+    .entry("default", "100MHz")
     .build()
     
   // BUNDLE can use PARAMETER

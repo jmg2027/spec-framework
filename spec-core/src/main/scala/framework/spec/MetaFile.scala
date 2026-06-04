@@ -41,10 +41,8 @@ object MetaFile {
    * Serialize a `Tag` to JSON and write it as a .tag file in the spec-meta
    * directory. Called by the macro system when a tag is defined in user code.
    */
-  def writeTag(tag: Tag): Unit = {
+  def writeTag(tag: Tag): Unit =
     writeFile(tag.id, "tag", upickle.default.write(tag, indent = 2))
-    println(s"[MetaFile] wrote tag → spec-meta for id=${tag.id}")
-  }
 
   /**
    * Serialize a `HardwareSpecification` to JSON and write it as a .spec file in
@@ -80,13 +78,10 @@ object MetaFile {
         StandardOpenOption.TRUNCATE_EXISTING,
         StandardOpenOption.WRITE,
       )
-
-      println(s"[MetaFile] wrote $ext → ${path.toAbsolutePath}")
+      ()
     } catch {
       case e: Exception =>
-        println(
-          s"[MetaFile] failed to write $ext for id '$id': ${e.getMessage}",
-        )
+        System.err.println(s"[MetaFile] failed to write $ext for id '$id': ${e.getMessage}")
         throw e
     }
 }

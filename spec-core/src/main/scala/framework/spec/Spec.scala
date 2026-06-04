@@ -120,7 +120,9 @@ object Spec {
       require(!core.id.contains(" "), s"Spec ID '${core.id}' must not contain spaces")
       require(core.desc.nonEmpty, "description must be provided via desc")
       val spec = core.toHardwareSpec.copy(scalaDeclarationPath = scalaDeclarationPath)
-      MetaFile.writeSpec(spec)
+      // NOTE: emission of the `.spec` artefact is the `spec { … }` macro's job
+      // (it writes the copy that carries scalaDeclarationPath). `build` no longer
+      // writes one itself — doing both produced two files per spec.
       SpecRegistry.addSpec(spec)
       spec
     }

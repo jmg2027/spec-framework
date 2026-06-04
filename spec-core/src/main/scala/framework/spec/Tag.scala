@@ -26,7 +26,7 @@ import upickle.default.{macroRW, ReadWriter}
  * @param line
  * Line number in the source file where the `@LocalSpec` annotation is present (1-based).
  * @param column
- * Column number in the source file where the `@LocalSpec` annotation is present (0-based).
+ * Column number in the source file where the `@LocalSpec` annotation is present (1-based, as reported by scalac positions).
  */
 final case class Tag(
   id: String,

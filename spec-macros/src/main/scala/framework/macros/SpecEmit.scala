@@ -32,7 +32,7 @@ object SpecEmit {
    *
    * @param body
    *   HardwareSpecification builder expression (e.g.
-   *   Spec.CONTRACT(...).capability(...).build())
+   *   Spec.CONTRACT(...).desc(...).entry(...).build())
    * @return
    *   The same HardwareSpecification as the input, but with a .spec file
    *   emitted at compile time.

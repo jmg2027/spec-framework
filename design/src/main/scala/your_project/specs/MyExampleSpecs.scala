@@ -3,7 +3,6 @@ package your_project.specs
 import framework.macros.LocalSpec             // @LocalSpec macro
 import framework.macros.SpecEmit.spec         // compile-time emission macro
 import framework.spec.Spec._                  // DSL entry point (FUNCTION, PROPERTY …)
-import framework.spec.Capability              // Capability symbol
 import framework.spec.HardwareSpecification
 
 object MyExampleSpecs {
