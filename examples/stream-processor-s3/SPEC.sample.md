@@ -144,10 +144,10 @@ Per-beat metadata derived by the pipeline (framing + classifier verdict)
 
 | Field | Type |
 |---|---|
-| sop | sop |
-| eop | eop |
-| drop | drop |
-| prio | prio |
+| sop | Bool |
+| eop | Bool |
+| drop | Bool |
+| prio | UInt |
 
 
 ### BND_RULE_ACTION
@@ -158,10 +158,10 @@ Classifier verdict: drop / redirect / set priority
 
 | Field | Type |
 |---|---|
-| drop | drop |
-| setDest | setDest |
-| newDest | newDest |
-| prio | prio |
+| drop | Bool |
+| setDest | Bool |
+| newDest | UInt |
+| prio | UInt |
 
 
 ### BND_STREAM_BEAT
@@ -172,11 +172,11 @@ AXI-Stream beat: data + byte-enables + end-of-packet framing + routing tags
 
 | Field | Type |
 |---|---|
-| data | data |
-| keep | keep |
-| last | last |
-| id | id |
-| dest | dest |
+| data | UInt |
+| keep | UInt |
+| last | Bool |
+| id | UInt |
+| dest | UInt |
 
 
 ### BND_TAGGED_BEAT
@@ -185,8 +185,8 @@ A beat paired with its metadata — the unit that flows between stages
 
 | Field | Type |
 |---|---|
-| beat | beat |
-| meta | meta |
+| beat | StreamBeat |
+| meta | PacketMeta |
 
 
 ## CONTRACT
@@ -477,6 +477,8 @@ Stream datapath width in bytes (power of two)
 
 | Key | Value |
 |---|---|
+| name | dataBytes |
+| type | Int |
 | default | 4 |
 
 
@@ -486,6 +488,8 @@ AXI-Stream TDEST width (selects the output port)
 
 | Key | Value |
 |---|---|
+| name | destWidth |
+| type | Int |
 | default | 4 |
 
 
@@ -495,6 +499,8 @@ Egress FIFO depth
 
 | Key | Value |
 |---|---|
+| name | egressDepth |
+| type | Int |
 | default | 8 |
 
 
@@ -504,6 +510,8 @@ Bytes captured into the packet header for classification
 
 | Key | Value |
 |---|---|
+| name | headerBytes |
+| type | Int |
 | default | 8 |
 
 
@@ -513,6 +521,8 @@ AXI-Stream TID width
 
 | Key | Value |
 |---|---|
+| name | idWidth |
+| type | Int |
 | default | 4 |
 
 
@@ -522,6 +532,8 @@ Ingress elastic FIFO depth
 
 | Key | Value |
 |---|---|
+| name | ingressDepth |
+| type | Int |
 | default | 8 |
 
 
@@ -531,6 +543,8 @@ Classifier table depth (number of match rules)
 
 | Key | Value |
 |---|---|
+| name | numRules |
+| type | Int |
 | default | 8 |
 
 
@@ -540,6 +554,8 @@ Token-bucket burst size for the rate shaper
 
 | Key | Value |
 |---|---|
+| name | shaperBurst |
+| type | Int |
 | default | 16 |
 
 

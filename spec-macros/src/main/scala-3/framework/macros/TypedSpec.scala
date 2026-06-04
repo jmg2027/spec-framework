@@ -36,8 +36,11 @@ object TypedSpec:
     val idV   = id.value.getOrElse(report.errorAndAbort("param: id must be a string literal"))
     val descV = desc.value.getOrElse(report.errorAndAbort("param: desc must be a string literal"))
     require(!idV.contains(" "), s"Spec ID '$idV' must not contain spaces")
+    // `.widen`: a field selection's type is a narrow TermRef (e.g. the singleton
+    // path `cfg.dataBytes`), whose `.show` is the field name — widen it to the
+    // underlying type (`Int`) so `type` is the type, not a copy of `name`.
     def digSelect(t: Term): Option[(String, TypeRepr)] = t match
-      case Select(_, name)  => Some((name, t.tpe))
+      case Select(_, name)  => Some((name, t.tpe.widen))
       case Typed(e, _)      => digSelect(e)
       case Block(_, e)      => digSelect(e)
       case Inlined(_, _, e) => digSelect(e)
@@ -79,7 +82,7 @@ object TypedSpec:
       case Inlined(_, _, e) => digSelect(e)
       case _                => None
     val (fname, ftype) = sel.asTerm.underlyingArgument match
-      case Lambda(_, body) => (digSelect(body).getOrElse(report.errorAndAbort("paramSpec selector must be _.field")), typeLabel(body.tpe.show))
+      case Lambda(_, body) => (digSelect(body).getOrElse(report.errorAndAbort("paramSpec selector must be _.field")), typeLabel(body.tpe.widen.show))
       case other           => digSelect(other) match
         case Some(n) => (n, "?")
         case None    => report.errorAndAbort("paramSpec selector must be a function literal _.field")
@@ -107,8 +110,10 @@ object TypedSpec:
     require(!idV.contains(" "), s"Spec ID '$idV' must not contain spaces")
 
     // -- extract (name, type) from each selector ------------------------------
+    // `.widen`: a field selection's type is a narrow TermRef whose `.show` is the
+    // field name; widen it to the underlying type so `type` isn't a copy of `name`.
     def digSelect(t: Term): Option[(String, TypeRepr)] = t match
-      case Select(_, name) => Some((name, t.tpe))
+      case Select(_, name) => Some((name, t.tpe.widen))
       case Typed(e, _)     => digSelect(e)
       case Block(Nil, e)   => digSelect(e)
       case Inlined(_, _, e)=> digSelect(e)

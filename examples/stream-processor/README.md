@@ -10,8 +10,8 @@ spec framework, producing browsable artefacts.
 ./run.sh        # build + elaborate (FIRRTL) + aggregate → artifacts/
 ```
 
-The compliance report comes out **41 spec nodes · 24/24 RTL-anchored ·
-5/5 properties enforced · 4/4 bundles complete · 0 dangling** — see
+The compliance report comes out **44 spec nodes · 24/24 RTL-anchored ·
+8/8 formal-bound · 4/4 bundles complete · 0 dangling** — see
 [`SPEC.sample.md`](SPEC.sample.md) (renders on GitHub: Mermaid graph + tables).
 
 ## Architecture

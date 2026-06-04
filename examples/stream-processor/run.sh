@@ -18,8 +18,11 @@ echo "### 1/3  Publishing the framework locally (Scala 2.13) …"
     "++2.13.12" specCore/publishLocal specMacros/publishLocal )
 
 echo "### 2/4  Elaborate (FIRRTL) + capture bundle widths + spec-driven testbench …"
-rm -rf "$HERE"/target/*/resource_managed
-( cd "$HERE" && "$SBT" "runMain streamproc.Elaborate" "runMain streamproc.WidthProbe" "runMain streamproc.verif.Testbench" )
+#   `clean` (not just rm of resource_managed): the compile-time specs/tags
+#   (`spec{}`, typed `bundle`, `param`, `localSpec`) are emitted *during compilation*,
+#   so they only regenerate if the next step actually recompiles. Cleaning forces
+#   that recompile, making the spec graph reproducible run-to-run.
+( cd "$HERE" && "$SBT" clean "runMain streamproc.Elaborate" "runMain streamproc.WidthProbe" "runMain streamproc.verif.Testbench" )
 
 echo "### 3/4  REAL verilator simulation of the same spec assertions (ChiselSim) …"
 #   The verilator run proves the spec assertions on the actual RTL; add --inject-bug
