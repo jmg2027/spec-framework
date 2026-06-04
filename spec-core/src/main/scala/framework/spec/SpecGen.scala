@@ -63,25 +63,53 @@ object SpecGen {
        |""".stripMargin
   }
 
-  def genModule(cont: HardwareSpecification, byId: Map[String, HardwareSpecification]): String = {
+  /** The enclosing spec object (drop the val) of a scalaDeclarationPath. */
+  private def objectOf(path: String): String =
+    if (path.contains(".")) path.substring(0, path.lastIndexOf('.')) else path
+
+  private def isInput(i: HardwareSpecification): Boolean =
+    i.lists.toMap.get("direction").exists(_.contains("Flipped")) || i.id.endsWith("_IN")
+
+  def genModule(cont: HardwareSpecification, byId: Map[String, HardwareSpecification], all: List[HardwareSpecification]): String = {
     def cat(id: String) = byId.get(id).map(_.category)
-    val has  = cont.has.toList.sorted
+    val has   = cont.has.toList.sorted
     val intfs = has.filter(cat(_).contains(SpecCategory.INTERFACE)).map(byId)
     val subs  = has.filter(cat(_).contains(SpecCategory.CONTRACT)).map(byId)
     val funcs = has.filter(cat(_).contains(SpecCategory.FUNCTION)).map(byId)
-    val props = (cont.has ++ cont.is).toList.flatMap(byId.get).filter(_.category == SpecCategory.PROPERTY)
+    // properties/coverage are linked to a module by sharing its spec object.
+    val myObj  = objectOf(cont.scalaDeclarationPath)
+    val checks = all.filter(s => (s.category == SpecCategory.PROPERTY || s.category == SpecCategory.COVERAGE) &&
+                                 objectOf(s.scalaDeclarationPath) == myObj)
 
+    def bndOf(i: HardwareSpecification) =
+      i.has.toList.flatMap(byId.get).find(_.category == SpecCategory.BUNDLE).map(b => pascal(b.id)).getOrElse("UInt /*?*/")
     def port(i: HardwareSpecification): String = {
-      val m     = i.lists.toMap
-      val input = m.get("direction").exists(_.contains("Flipped")) || i.id.endsWith("_IN")
-      val bnd   = i.has.toList.flatMap(byId.get).find(_.category == SpecCategory.BUNDLE).map(b => pascal(b.id)).getOrElse("UInt /*?*/")
-      val tpe   = if (input) s"Flipped(Decoupled(new $bnd(c)))" else s"Decoupled(new $bnd(c))"
+      val tpe = if (isInput(i)) s"Flipped(Decoupled(new ${bndOf(i)}(c)))" else s"Decoupled(new ${bndOf(i)}(c))"
       s"  val ${camel(i.id)} = localSpec(${valName(i.id)}, IO($tpe))"
     }
-    val ports   = intfs.map(port)
-    val subInst = subs.map(s => s"  val ${camel(s.id)} = Module(new ${pascal(s.id)}(c))")
-    val funcStubs = funcs.map(f => s"  localSpec(${valName(f.id)})  // ${f.description.replaceAll("\\s+"," ").trim.take(70)}")
-    val propStubs = props.map(p => s"""  assert(assertProperty(${valName(p.id)}) { true.B /* TODO: ${p.description.replaceAll("\\s+"," ").trim.take(60)} */ }, "${p.id}")""")
+    // DontCare so the skeleton elaborates: own outputs (valid/bits) + own input.ready
+    def ownDrive(i: HardwareSpecification): String =
+      if (isInput(i)) s"  ${camel(i.id)}.ready := DontCare"
+      else s"  ${camel(i.id)}.valid := DontCare; ${camel(i.id)}.bits := DontCare"
+    // For sub-modules the directions flip: drive sub inputs' valid/bits, sub outputs' ready
+    def subDrive(s: HardwareSpecification): Seq[String] = {
+      val si = s.has.toList.filter(cat(_).contains(SpecCategory.INTERFACE)).map(byId)
+      si.map { i =>
+        val p = s"${camel(s.id)}.${camel(i.id)}"
+        if (isInput(i)) s"  $p.valid := DontCare; $p.bits := DontCare" else s"  $p.ready := DontCare"
+      }
+    }
+
+    val ports     = intfs.map(port)
+    val subInst   = subs.map(s => s"  val ${camel(s.id)} = Module(new ${pascal(s.id)}(c))")
+    val funcStubs = funcs.map(f => s"  localSpec(${valName(f.id)})  // ${f.description.replaceAll("\\s+", " ").trim.take(70)}")
+    val drives    = intfs.map(ownDrive) ++ subs.flatMap(subDrive)
+    val checkStubs = checks.map { p =>
+      if (p.category == SpecCategory.PROPERTY)
+        s"""  assert(assertProperty(${valName(p.id)}) { true.B /* TODO: ${p.description.replaceAll("\\s+", " ").trim.take(55)} */ }, "${p.id}")"""
+      else
+        s"""  cover(coverProperty(${valName(p.id)}) { false.B /* TODO */ }, "${p.id}")"""
+    }
 
     s"""/** ${cont.description.replaceAll("\\s+", " ").trim} (${cont.id}) */
        |class ${pascal(cont.id)}(c: Config) extends Module {
@@ -91,8 +119,10 @@ object SpecGen {
        |${if (subInst.nonEmpty) "\n" + subInst.mkString("\n") + "\n" else ""}
        |${funcStubs.mkString("\n")}
        |
-       |  // TODO: pipeline logic; drive outputs (use DontCare to start)
-       |${propStubs.mkString("\n")}
+       |  // ---- TODO: replace DontCare with real logic ----
+       |${drives.mkString("\n")}
+       |
+       |${checkStubs.mkString("\n")}
        |}
        |""".stripMargin
   }
@@ -123,6 +153,7 @@ object SpecGen {
 
     val sb = new StringBuilder
     sb.append("// GENERATED skeleton from the spec graph by SpecGen. Fill in the logic.\n")
+    sb.append("package generated\n\n")
     sb.append("import chisel3._\nimport chisel3.util._\nimport framework.macros.localSpec\nimport framework.macros.Formal._\n")
     // import the spec objects (derived from each spec's scalaDeclarationPath) so the
     // localSpec/assertProperty references resolve.
@@ -134,7 +165,7 @@ object SpecGen {
     sb.append("\n")
     sb.append(genConfig(of(SpecCategory.PARAMETER))).append("\n")
     of(SpecCategory.BUNDLE).foreach(b => sb.append(genBundle(b)).append("\n"))
-    of(SpecCategory.CONTRACT).foreach(c => sb.append(genModule(c, byId)).append("\n"))
+    of(SpecCategory.CONTRACT).foreach(c => sb.append(genModule(c, byId, specs)).append("\n"))
 
     val f = outDir.resolve("Generated.scala")
     Files.write(f, sb.toString.getBytes)

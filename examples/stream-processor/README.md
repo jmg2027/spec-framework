@@ -69,6 +69,25 @@ straight from the Chisel bundle.
 | `SPEC.md` | humans — Mermaid graph, coverage, per-node detail + RTL anchors |
 | `target/StreamProcessorTop.fir` | the elaborated FIRRTL (proves it is real Chisel) |
 
+## Spec → design generation
+
+Because the spec is the source of truth, the design skeleton can be **generated
+from it** (the right direction — not specs extracted from RTL):
+
+```bash
+./gen.sh        # spec graph → gen-out/Generated.scala (a Chisel skeleton)
+```
+
+`SpecGen` emits a `Config` case class (from the PARAMETER specs, defaults and all),
+`Bundle` classes with the **real widths** (`data = UInt(32.W)`, from the width
+probe), and a module per `CONTRACT` — `localSpec`-anchored ports (from the
+INTERFACE specs + directions), sub-module instances, function anchors,
+`assertProperty`/`coverProperty` stubs (linked by spec-object), and the spec-object
+imports — all wired, with `DontCare` placeholders. The generated skeleton
+**compiles and elaborates** (≈220 lines of FIRRTL); the engineer just replaces the
+`DontCare`/`true.B` with logic. A committed snapshot is in
+[`Generated.sample.scala`](Generated.sample.scala).
+
 ## Spec-driven verification
 
 The properties + coverage are not just bound in the RTL — the same spec objects
