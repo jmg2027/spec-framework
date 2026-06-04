@@ -1,0 +1,187 @@
+// spec-core/src/main/scala/framework/spec/SpecCheck.scala
+// -----------------------------------------------------------------------------
+//  SpecCheck — aggregate the compile-time `.spec`/`.tag` artefacts, emit the
+//  SpecIndex.json / TagIndex.json indices, and run a spec-compliance report.
+//
+//  This is the consumer side of the framework: it turns the structured spec
+//  graph + the source-anchored bindings into actionable signal. Several classes
+//  of spec↔implementation drift that the *compiler* cannot catch (because they
+//  are about completeness / coverage, not types) are surfaced here:
+//
+//    • dangling references  — `is/has/uses` pointing at an undefined spec id
+//    • implementation gaps  — CONTRACT/INTERFACE/FUNCTION nodes with no @LocalSpec
+//    • formal coverage      — PROPERTY/COVERAGE nodes with no assert/cover binding
+//    • bundle incompleteness— typed bundles with public fields left undeclared
+//
+//  Field-level type drift is intentionally absent: `bundleSpec[T]` makes that a
+//  *compile error*, so it can never reach this stage.
+//
+//  Usage:  SpecCheck <meta-dir> [<out-dir>]
+//          exit code 0 = clean, 1 = hard violations (dangling refs).
+// -----------------------------------------------------------------------------
+package framework.spec
+
+import java.nio.file.{Files, Path, Paths}
+import scala.collection.JavaConverters._
+import upickle.default.{read => uread, write => uwrite}
+
+object SpecCheck {
+
+  // ---- Aggregation --------------------------------------------------------
+
+  def loadSpecs(metaDir: Path): List[HardwareSpecification] =
+    Files.walk(metaDir).iterator.asScala
+      .filter(_.toString.endsWith(".spec"))
+      .flatMap { p =>
+        val lines     = Files.readAllLines(p).asScala.toList
+        val jsonStart = lines.indexWhere(_.trim.startsWith("{"))
+        if (jsonStart < 0) None
+        else
+          try Some(uread[HardwareSpecification](lines.drop(jsonStart).mkString("\n")))
+          catch { case _: Throwable => None }
+      }
+      .toList
+      // de-dupe by id, preferring the copy that carries a scalaDeclarationPath
+      .groupBy(_.id)
+      .map { case (_, dup) => dup.find(_.scalaDeclarationPath.nonEmpty).getOrElse(dup.head) }
+      .toList
+
+  def loadTags(metaDir: Path): List[Tag] =
+    Files.walk(metaDir).iterator.asScala
+      .filter(_.toString.endsWith(".tag"))
+      .flatMap { p =>
+        try Some(uread[Tag](Files.readString(p)))
+        catch { case _: Throwable => None }
+      }
+      .toList
+
+  // ---- Report model -------------------------------------------------------
+
+  final case class Report(
+      specs: List[HardwareSpecification],
+      tags: List[Tag],
+  ) {
+    private val ids       = specs.map(_.id).toSet
+    private val byCat     = specs.groupBy(_.category)
+    private val implIds   = tags.filter(_.kind == "impl").map(_.id).toSet
+    private val assertIds = tags.filter(t => t.kind == "assert" || t.kind == "cover").map(_.id).toSet
+
+    /** is/has/uses references that point at an undefined spec id. */
+    val dangling: List[(String, String, String)] =
+      for {
+        s   <- specs
+        (rel, ref) <- s.is.toList.map(("is", _)) ::: s.has.toList.map(("has", _)) ::: s.uses.toList.map(("uses", _))
+        if !ids.contains(ref)
+      } yield (s.id, rel, ref)
+
+    private def cat(c: SpecCategory): List[HardwareSpecification] = byCat.getOrElse(c, Nil)
+
+    /** Structural nodes that should be anchored to RTL but carry no @LocalSpec. */
+    val unimplemented: List[HardwareSpecification] =
+      (cat(SpecCategory.CONTRACT) ::: cat(SpecCategory.INTERFACE) ::: cat(SpecCategory.FUNCTION))
+        .filterNot(s => implIds.contains(s.id))
+        .sortBy(_.id)
+
+    /** PROPERTY/COVERAGE nodes with no bound assertion/cover. */
+    val unenforced: List[HardwareSpecification] =
+      (cat(SpecCategory.PROPERTY) ::: cat(SpecCategory.COVERAGE))
+        .filterNot(s => assertIds.contains(s.id))
+        .sortBy(_.id)
+
+    /** Typed bundles that left public implementation fields undeclared. */
+    val incompleteBundles: List[(String, String)] =
+      cat(SpecCategory.BUNDLE).flatMap { s =>
+        s.notes.find(_.startsWith("undeclared-fields:")).map(n => s.id -> n.stripPrefix("undeclared-fields:").trim)
+      }.sortBy(_._1)
+
+    def hardViolations: Int = dangling.size
+
+    def render: String = {
+      val sb = new StringBuilder
+      def h(t: String): Unit = { sb.append("\n").append(t).append("\n").append("─" * t.length).append("\n") }
+
+      sb.append("══════════════════════════════════════════════════════\n")
+      sb.append("  SPEC COMPLIANCE REPORT\n")
+      sb.append("══════════════════════════════════════════════════════\n")
+
+      h("Spec graph")
+      byCat.toList.sortBy(_._1.toString).foreach { case (c, xs) =>
+        sb.append(f"  ${catName(c)}%-12s ${xs.size}%3d\n")
+      }
+      sb.append(f"  ${"TOTAL"}%-12s ${specs.size}%3d nodes, ${tags.size} bindings\n")
+
+      h("Implementation coverage (structural nodes ↔ @LocalSpec)")
+      val structural = cat(SpecCategory.CONTRACT).size + cat(SpecCategory.INTERFACE).size + cat(SpecCategory.FUNCTION).size
+      sb.append(f"  bound:   ${structural - unimplemented.size}%3d / $structural%-3d\n")
+      if (unimplemented.nonEmpty) {
+        sb.append("  UNIMPLEMENTED (no RTL anchor):\n")
+        unimplemented.foreach(s => sb.append(s"    ⚠ ${s.id}  [${catName(s.category)}]\n"))
+      } else sb.append("  ✓ every structural node is anchored to RTL\n")
+
+      h("Formal coverage (PROPERTY/COVERAGE ↔ assert/cover)")
+      val props = cat(SpecCategory.PROPERTY).size + cat(SpecCategory.COVERAGE).size
+      sb.append(f"  enforced: ${props - unenforced.size}%3d / $props%-3d\n")
+      if (unenforced.nonEmpty) {
+        sb.append("  UNENFORCED (declared but not bound to any check):\n")
+        unenforced.foreach(s => sb.append(s"    ⚠ ${s.id}  [${catName(s.category)}]\n"))
+      } else sb.append("  ✓ every property/coverage node is bound to a check\n")
+      val bound = tags.filter(t => t.kind == "assert" || t.kind == "cover")
+      if (bound.nonEmpty) {
+        sb.append("  bindings:\n")
+        bound.sortBy(_.id).foreach(t =>
+          sb.append(s"    • ${t.id}  ⇐  ${t.expr}   (${shortSrc(t.srcFile)}:${t.line})\n"))
+      }
+
+      h("Typed bundle completeness")
+      if (incompleteBundles.nonEmpty)
+        incompleteBundles.foreach { case (id, fs) => sb.append(s"    ⚠ $id leaves undeclared: $fs\n") }
+      else sb.append("  ✓ all typed bundles declare every public field\n")
+
+      h("Dangling references (HARD)")
+      if (dangling.nonEmpty)
+        dangling.sortBy(_._1).foreach { case (from, rel, ref) =>
+          sb.append(s"    ✗ $from --$rel--> $ref   (undefined)\n")
+        }
+      else sb.append("  ✓ every reference resolves to a defined spec\n")
+
+      sb.append("\n══════════════════════════════════════════════════════\n")
+      sb.append(
+        if (hardViolations == 0) "  RESULT: PASS (no hard violations)\n"
+        else s"  RESULT: FAIL ($hardViolations dangling reference(s))\n")
+      sb.append("══════════════════════════════════════════════════════\n")
+      sb.toString
+    }
+  }
+
+  private def catName(c: SpecCategory): String = c match {
+    case SpecCategory.RAW(p) => s"RAW:$p"
+    case other               => other.toString.replaceFirst("^.*\\$", "")
+  }
+  private def shortSrc(s: String): String = s.split("/").lastOption.getOrElse(s)
+
+  // ---- Entry point --------------------------------------------------------
+
+  def main(args: Array[String]): Unit = {
+    if (args.isEmpty) {
+      System.err.println("usage: SpecCheck <meta-dir> [<out-dir>]")
+      sys.exit(2)
+    }
+    val metaDir = Paths.get(args(0))
+    if (!Files.isDirectory(metaDir)) {
+      System.err.println(s"[SpecCheck] meta dir not found: $metaDir")
+      sys.exit(2)
+    }
+    val specs = loadSpecs(metaDir)
+    val tags  = loadTags(metaDir)
+
+    val outDir = Paths.get(if (args.length > 1) args(1) else args(0))
+    Files.createDirectories(outDir)
+    Files.write(outDir.resolve("SpecIndex.json"), uwrite(specs, indent = 2).getBytes)
+    Files.write(outDir.resolve("TagIndex.json"), uwrite(tags, indent = 2).getBytes)
+
+    val report = Report(specs, tags)
+    print(report.render)
+    println(s"[SpecCheck] indices → ${outDir.toAbsolutePath}")
+    sys.exit(if (report.hardViolations == 0) 0 else 1)
+  }
+}

@@ -35,7 +35,18 @@ final case class Tag(
   hardwareInstancePath: String,     // For FIRRTL elaboration
   srcFile: String,
   line: Int,
-  column: Int
+  column: Int,
+  // ---------------------------------------------------------------------------
+  // Binding kind & evidence (added for the formal-connection feature).
+  //   kind = "impl"   → structural binding emitted by @LocalSpec
+  //   kind = "assert" → a PROPERTY enforced by a runtime/formal assertion
+  //   kind = "cover"  → a COVERAGE point exercised by a cover statement
+  // `expr` carries the source text of the bound boolean condition (kind != impl)
+  // so the index records *what* is actually being checked, not just *that* it is.
+  // Defaults keep this backward compatible with previously-emitted TagIndex.json.
+  // ---------------------------------------------------------------------------
+  kind: String = "impl",
+  expr: String = ""
 )
 
 object Tag {

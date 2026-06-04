@@ -20,3 +20,9 @@ Thumbs.db
 # tar
 *.tar
 *.tar.gz
+
+# generated spec artefacts (compile-time .spec/.tag + aggregated indices)
+spec-meta/
+examples/frontend-demo/SpecIndex.json
+examples/frontend-demo/TagIndex.json
+*.bak

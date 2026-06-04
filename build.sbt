@@ -33,6 +33,39 @@ lazy val specPlugin = (project in file("spec-plugin"))
 
 // Note: The design project is now a fully independent SBT project and is not defined here.
 
+// ---------- Self-contained demo: typed bundles + formal connection ----------
+// Three modules compiled in dependency order so the typed-bundle reflection and
+// the @LocalSpec / assertProperty id-resolution always see already-compiled
+// upstream artefacts:
+//   demoTypes  → implementation types + a tiny Chisel-shaped shim (no specs)
+//   demoSpecs  → the spec graph (typed BUNDLEs, FUNCTIONs, PROPERTYs, …)
+//   demoDesign → the RTL, anchored to specs via @LocalSpec / assertProperty
+// All three emit their .spec/.tag artefacts into a shared spec-meta directory.
+
+// Point the macro/DSL emission at a single shared meta directory for the demo.
+ThisBuild / initialize := {
+  val _ = (ThisBuild / initialize).value
+  val dir = (ThisBuild / baseDirectory).value / "examples" / "frontend-demo" / "spec-meta"
+  System.setProperty("spec.meta.dir", dir.getAbsolutePath)
+}
+
+lazy val demoTypes = (project in file("examples/frontend-demo/types"))
+  .settings(name := "demo-types")
+
+lazy val demoSpecs = (project in file("examples/frontend-demo/specs"))
+  .dependsOn(demoTypes, specCore, specMacros)
+  .settings(
+    name := "demo-specs",
+    Compile / scalacOptions += "-Ymacro-annotations",
+  )
+
+lazy val demoDesign = (project in file("examples/frontend-demo/design"))
+  .dependsOn(demoSpecs, demoTypes, specCore, specMacros)
+  .settings(
+    name := "demo-design",
+    Compile / scalacOptions += "-Ymacro-annotations",
+  )
+
 // ---------- Root Project Aggregation ----------
 lazy val root = (project in file("."))
   // Only aggregate the core libraries; specPlugin and design are independent
