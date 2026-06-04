@@ -41,5 +41,5 @@ class Classifier(c: SPConfig) extends Module {
   // The action applied to a non-SOP beat is exactly the one latched at SOP.
   assert(assertProperty(propActionStable) {
     !(out.fire && !in.bits.meta.sop) || (act.asUInt === curAction.asUInt)
-  }, "classifier action changed mid-packet")
+  }, "[PROP_ACTION_STABLE] classifier action changed mid-packet")
 }

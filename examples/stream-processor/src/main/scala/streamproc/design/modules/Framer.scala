@@ -31,5 +31,5 @@ class Framer(c: SPConfig) extends Module {
   // EOP is only ever produced inside an open packet (or for a single-beat packet, which is also SOP).
   assert(assertProperty(propSopEopBalanced) {
     !(out.fire && out.bits.meta.eop) || inPacket || out.bits.meta.sop
-  }, "EOP asserted outside an open packet")
+  }, "[PROP_SOP_EOP_BALANCED] EOP outside an open packet")
 }

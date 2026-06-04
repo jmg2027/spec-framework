@@ -1,0 +1,15 @@
+// functional_coverage.sva — auto-derived from the spec graph by SpecCheck.
+// One cover per INTERFACE (fires) and FUNCTION (exercised). Fill the signal hints.
+
+// INTF_EPM_REQ_OUT — Fetch request output to external program memory
+cf_INTF_EPM_REQ_OUT: cover property (@(posedge clk) disable iff (reset) /* INTF_EPM_REQ_OUT.valid && INTF_EPM_REQ_OUT.ready */); // interface fired
+
+// INTF_EPM_RESP_IN — Fetch response input from external program memory
+cf_INTF_EPM_RESP_IN: cover property (@(posedge clk) disable iff (reset) /* INTF_EPM_RESP_IN.valid && INTF_EPM_RESP_IN.ready */); // interface fired
+
+// FUNC_FETCH_REQUEST — Generate aligned fetch requests, allocate txn entry
+cf_FUNC_FETCH_REQUEST: cover property (@(posedge clk) disable iff (reset) /* <FUNC_FETCH_REQUEST active> */); // function exercised
+
+// FUNC_FETCH_RESPONSE — Match response txn, forward data, deallocate entry
+cf_FUNC_FETCH_RESPONSE: cover property (@(posedge clk) disable iff (reset) /* <FUNC_FETCH_RESPONSE active> */); // function exercised
+

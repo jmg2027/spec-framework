@@ -25,11 +25,11 @@ class Shaper(c: SPConfig) extends Module {
   in.ready  := out.ready && haveToken
   out.bits  := in.bits
 
-  val refill  = tokens < c.shaperBurst.U
+  val refill  = (tokens < c.shaperBurst.U) || c.injectShaperBug.B // BUG: refills past the cap
   val consume = out.fire
   when(consume && !refill) { tokens := tokens - 1.U }
     .elsewhen(!consume && refill) { tokens := tokens + 1.U }
 
-  assert(assertProperty(propTokenBounded) { tokens <= c.shaperBurst.U }, "shaper token count exceeded burst")
-  cover(coverProperty(covTokensDrained) { tokens === 0.U }, "shaper ran out of tokens")
+  assert(assertProperty(propTokenBounded) { tokens <= c.shaperBurst.U }, "[PROP_TOKEN_BOUNDED] shaper token count exceeded burst")
+  cover(coverProperty(covTokensDrained) { tokens === 0.U }, "[COV_TOKENS_DRAINED] shaper ran out of tokens")
 }

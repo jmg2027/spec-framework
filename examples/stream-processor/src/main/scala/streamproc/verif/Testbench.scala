@@ -1,6 +1,6 @@
 package streamproc.verif
 
-import framework.spec.Bench
+import framework.spec.{Bench, SpecRegistry}
 import streamproc.design.SPConfig
 // The SAME spec objects the RTL binds with assertProperty/coverProperty are
 // reused here as the checkers / cover points — the spec is the single source of
@@ -26,6 +26,10 @@ object Testbench {
     val bench = new Bench
     val rng   = new scala.util.Random(1)
 
+    // Touch every spec object so the registry holds the whole graph (for the
+    // auto-derived functional coverage below).
+    streamproc.specs.top.TopSpecs.contStreamProcessor
+
     bench.run(4000) { _ =>
       val in = if (rng.nextInt(100) < 75) Some(m.Beat(rng.nextInt(256), rng.nextInt(100) < 30, rng.nextInt(16))) else None
       val downstreamReady = rng.nextInt(100) < 55
@@ -40,6 +44,10 @@ object Testbench {
       bench.coverPoint(covBackpressure)  { m.ingressFull }
       bench.coverPoint(covPacketDrop)    { m.packetDropped }
       bench.coverPoint(covTokensDrained) { m.tokensNow == 0 }
+
+      // Functional coverage — obligations auto-derived from the FUNCTION/INTERFACE
+      // specs (no hand-written plan); we only supply the per-node activity bit.
+      bench.autoFunctional(SpecRegistry.allSpecs) { id => m.fired.contains(id) }
     }
 
     bench.writeIndex()

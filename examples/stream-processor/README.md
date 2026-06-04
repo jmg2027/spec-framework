@@ -71,19 +71,28 @@ straight from the Chisel bundle.
 
 ## Spec-driven verification
 
-The 5 properties + 3 coverage points are not just bound in the RTL — they drive a
-**testbench** that reuses the *same spec objects* as checkers, and a **formal
-harness**. `run.sh` runs the simulation; the report gains a verification section:
+The properties + coverage are not just bound in the RTL — the same spec objects
+drive verification, and the results fold back into the report:
+
+- **Real verilator simulation** (`RealTestbench`, via ChiselSim): the spec
+  assertions emitted by `assertProperty` run on the *actual elaborated DUT*.
+  `--inject-bug` breaks the token cap and verilator fires the assertion →
+  `PROP_TOKEN_BOUNDED ✗ FAILED @cycle 1  (backend: verilator)`.
+- **Model backend** (`Testbench`): a pure-Scala reference model checks every
+  property and exercises coverage — `8/8`, surfacing a real hole
+  (`COV_TOKENS_DRAINED` is unreachable: the bucket refills as fast as it drains).
+- **Functional coverage, auto-derived** from the FUNCTION/INTERFACE specs — no
+  hand-written plan: `18/18` (every interface fired, every function ran).
+- **Formal**: `properties.sva` + `spec_formal.sby` (SymbiYosys) + auto
+  `functional_coverage.sva`.
 
 ```
-Verification (spec-driven simulation)   exercised: 8/8 (4000 cycles)
-  PROP_TOKEN_BOUNDED   ✓ passed (4000 cy)      COV_BACKPRESSURE   ✓ covered (974 hits)
-  …                                            COV_TOKENS_DRAINED ○ uncovered  ← real hole
+Verification (spec-driven, backend: verilator)   PROP_TOKEN_BOUNDED ✗ FAILED @cycle 1
+Verification (spec-driven, backend: model)       8/8 exercised, 4000 cycles
+Functional coverage (auto-derived)               18/18  ✓ every interface fired
 ```
 
-`runMain streamproc.verif.Testbench --inject-bug` breaks the token cap and the
-report shows `PROP_TOKEN_BOUNDED ✗ FAILED @cycle 0`. `SpecCheck` also emits
-`spec_formal.sby` (SymbiYosys) to prove the same properties formally. See
+Needs `verilator` (real sim) and, for formal, `yosys`/`sby`. See
 [`docs/SPEC_DRIVEN_VERIFICATION.md`](../../docs/SPEC_DRIVEN_VERIFICATION.md).
 
 ## Scala 2 / Scala 3

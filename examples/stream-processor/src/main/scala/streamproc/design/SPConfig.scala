@@ -14,6 +14,7 @@ final case class SPConfig(
     egressDepth: Int = 8,
     enableShaper: Boolean = true,
     shaperBurst: Int = 16,
+    injectShaperBug: Boolean = false, // break the token cap → PROP_TOKEN_BOUNDED fails (for the verification demo)
 ) {
   require(dataBytes >= 1 && (dataBytes & (dataBytes - 1)) == 0, "dataBytes must be a power of two")
   require(headerBytes >= dataBytes, "headerBytes must be >= dataBytes")

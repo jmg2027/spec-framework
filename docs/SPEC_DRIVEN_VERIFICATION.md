@@ -50,9 +50,43 @@ Verification (spec-driven simulation)
 It catches regressions tied to the node: `Testbench --inject-bug` breaks the
 token cap and the report shows `PROP_TOKEN_BOUNDED ✗ FAILED @cycle 0`.
 
-> In this environment there is no simulator, so the testbench drives a pure-Scala
-> reference model. With verilator the *same* `checkProperty`/`coverPoint` calls
-> peek the elaborated DUT instead — the methodology is identical.
+### Pluggable backend (real tools, swappable)
+
+The checker is backend-agnostic — every result carries a `backend` tag and the
+report shows it (`Verification (spec-driven, backend: …)`). The example ships two:
+
+| backend | what runs | how |
+|---|---|---|
+| `model` | a pure-Scala reference model | `Testbench` |
+| `verilator` | the **real elaborated DUT** under verilator (ChiselSim); the spec assertions emitted by `assertProperty` are checked by the simulator itself | `RealTestbench` |
+
+`RealTestbench --inject-bug` breaks the token cap in the RTL; verilator fires the
+embedded assertion and its `[PROP_TOKEN_BOUNDED]` message maps the failure back to
+the spec → `PROP_TOKEN_BOUNDED ✗ FAILED @cycle …  (backend: verilator)`. Swapping
+in another simulator (VCS, Treadle, …) is a new `backend` value, not a rewrite —
+the `checkProperty`/`coverPoint`/`recordAssert` API is the same.
+
+## Functional coverage — auto-derived (no hand-written plan)
+
+Functional coverage is normally a hand-maintained list ("did this interface fire?
+was this function exercised?"). Here it is **derived from the spec graph**: every
+`INTERFACE` and `FUNCTION` spec is automatically an obligation. The testbench only
+supplies the activity bit:
+
+```scala
+bench.autoFunctional(SpecRegistry.allSpecs) { id => model.fired.contains(id) }
+```
+
+and the report closes it against the specs you already wrote:
+
+```
+Functional coverage (auto-derived from FUNCTION/INTERFACE specs)
+  exercised:  18 / 18    (no coverage plan hand-written — derived from the spec graph)
+  ✓ every interface fired and every function ran
+```
+
+`SpecCheck` also emits `functional_coverage.sva` — one `cover property` stub per
+interface/function, ready to bind to signals.
 
 ## Formal side
 

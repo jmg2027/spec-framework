@@ -199,6 +199,25 @@ object SpecCheck {
     }
 
     /**
+     * Functional coverage **auto-derived from the spec graph** — one obligation
+     * per INTERFACE (it should fire) and per FUNCTION (it should be exercised).
+     * No coverage plan is hand-written: writing the FUNCTION/INTERFACE specs (for
+     * the design) is enough. Emitted as `cover property` stubs to fill the signal.
+     */
+    def functionalSva: String = {
+      val sb = new StringBuilder
+      def one(s: HardwareSpecification, what: String, hint: String): Unit = {
+        sb.append(s"// ${s.id} — ${s.description.replaceAll("\\s+", " ").trim}\n")
+        sb.append(s"cf_${s.id}: cover property (@(posedge clk) disable iff (reset) $hint); // $what\n\n")
+      }
+      sb.append("// functional_coverage.sva — auto-derived from the spec graph by SpecCheck.\n")
+      sb.append("// One cover per INTERFACE (fires) and FUNCTION (exercised). Fill the signal hints.\n\n")
+      (cat(SpecCategory.INTERFACE)).sortBy(_.id).foreach(s => one(s, "interface fired", s"/* ${s.id}.valid && ${s.id}.ready */"))
+      (cat(SpecCategory.FUNCTION)).sortBy(_.id).foreach(s => one(s, "function exercised", s"/* <${s.id} active> */"))
+      sb.toString
+    }
+
+    /**
      * Render the whole spec graph as a self-contained, GitHub-friendly Markdown
      * document: a coverage summary, a Mermaid diagram of the graph (renders with
      * no extra tooling), and a per-node section with descriptions, relations as
@@ -229,6 +248,11 @@ object SpecCheck {
         val passed    = verif.count(v => v.status == "passed" || v.status == "covered")
         val failed    = verif.count(_.status == "failed")
         sb.append(s"| Verified in sim (passed/covered) | $passed / $checkable ${badge(failed == 0 && passed > 0)} |\n")
+      }
+      if (verif.exists(_.kind == "functional")) {
+        val obl = cat(SpecCategory.FUNCTION).size + cat(SpecCategory.INTERFACE).size
+        val hit = (cat(SpecCategory.FUNCTION) ::: cat(SpecCategory.INTERFACE)).count(s => verifById.get(s.id).exists(_.hits > 0))
+        sb.append(s"| Functional coverage (auto-derived) | $hit / $obl ${badge(hit == obl)} |\n")
       }
       sb.append("\n")
 
@@ -341,7 +365,8 @@ object SpecCheck {
       }
 
       if (verif.nonEmpty) {
-        h("Verification (spec-driven simulation)")
+        val backends = verif.map(_.backend).distinct.sorted.mkString(", ")
+        h(s"Verification (spec-driven, backend: $backends)")
         val checkable = (cat(SpecCategory.PROPERTY) ::: cat(SpecCategory.COVERAGE))
         val exercised = checkable.count(s => verifById.contains(s.id))
         sb.append(f"  exercised: $exercised%3d / ${checkable.size}%-3d   (${verif.map(_.cycles).reduceOption(_ max _).getOrElse(0)} cycles)\n")
@@ -355,6 +380,18 @@ object SpecCheck {
           }).getOrElse("· not exercised in sim")
           sb.append(f"    ${s.id}%-28s ").append(mark).append("\n")
         }
+      }
+
+      if (verif.exists(_.kind == "functional")) {
+        h("Functional coverage (auto-derived from FUNCTION/INTERFACE specs)")
+        val obligations = cat(SpecCategory.FUNCTION) ::: cat(SpecCategory.INTERFACE)
+        val hit         = obligations.count(s => verifById.get(s.id).exists(_.hits > 0))
+        sb.append(f"  exercised: $hit%3d / ${obligations.size}%-3d   (no coverage plan hand-written — derived from the spec graph)\n")
+        val missed = obligations.filterNot(s => verifById.get(s.id).exists(_.hits > 0)).sortBy(_.id)
+        if (missed.nonEmpty) {
+          sb.append("  NOT EXERCISED:\n")
+          missed.foreach(s => sb.append(s"    ○ ${s.id}  [${catName(s.category)}]\n"))
+        } else sb.append("  ✓ every interface fired and every function ran\n")
       }
 
       h("Typed bundle completeness")
@@ -424,6 +461,7 @@ object SpecCheck {
     Files.write(outDir.resolve("TagIndex.json"), uwrite(tags, indent = 2).getBytes)
     Files.write(outDir.resolve("properties.sva"), report.sva(clock, reset).getBytes)
     Files.write(outDir.resolve("spec_formal.sby"), report.formalSby(top, clock, reset).getBytes)
+    Files.write(outDir.resolve("functional_coverage.sva"), report.functionalSva.getBytes)
     Files.write(outDir.resolve("SPEC.md"), report.markdown.getBytes)
 
     print(report.render)

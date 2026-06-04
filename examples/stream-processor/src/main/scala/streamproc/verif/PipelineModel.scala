@@ -28,16 +28,22 @@ final class PipelineModel(c: SPConfig, injectBug: Boolean = false) {
   var packetDropped  = false
   def tokensNow: Int = tokens
 
+  // which FUNCTION/INTERFACE spec nodes were active this cycle (for auto functional coverage)
+  var fired: Set[String] = Set.empty
+
   /** Classifier rule: TDEST ≡ 3 (mod 4) ⇒ drop the packet. */
   private def classify(dest: Int): Boolean = (dest % 4) == 3
 
   def tick(in: Option[Beat], downstreamReady: Boolean): Unit = {
     ingressDropped = false; framingOk = true; emittedDrop = false
     actionStable = true; packetDropped = false
+    fired = Set.empty
 
     // ingress FIFO (lossless: when full, upstream is back-pressured, never dropped)
     ingressFull = ingress.size >= c.ingressDepth
-    in.foreach(b => if (!ingressFull) ingress.enqueue(b))
+    in.foreach { b =>
+      if (!ingressFull) { ingress.enqueue(b); fired ++= Set("INTF_STREAM_IN", "INTF_INGRESS_IN", "FUNC_ELASTIC_BUFFER", "FUNC_PIPELINE") }
+    }
 
     // shaper token refill (one per cycle, capped at burst — unless the bug is on)
     if (tokens < c.shaperBurst) tokens += 1
@@ -58,7 +64,13 @@ final class PipelineModel(c: SPConfig, injectBug: Boolean = false) {
 
       tokens -= 1
       if (dropPkt) emittedDrop = false else egress.enqueue(b)
+      fired ++= Set(
+        "INTF_INGRESS_OUT", "INTF_FRAMER_IN", "INTF_FRAMER_OUT", "FUNC_FRAMING",
+        "INTF_CLASSIFIER_IN", "INTF_CLASSIFIER_OUT", "FUNC_CLASSIFY",
+        "INTF_SHAPER_IN", "INTF_SHAPER_OUT", "FUNC_RATE_LIMIT",
+        "INTF_EGRESS_IN", "FUNC_DROP_FILTER",
+      )
     }
-    if (downstreamReady && egress.nonEmpty) egress.dequeue()
+    if (downstreamReady && egress.nonEmpty) { egress.dequeue(); fired ++= Set("INTF_EGRESS_OUT", "INTF_STREAM_OUT") }
   }
 }
