@@ -34,8 +34,18 @@ verify the spec graph against the implementation:
   **and** a human-readable `SPEC.md` (a GitHub-rendered Mermaid graph + tables;
   see [`examples/frontend-demo/SPEC.sample.md`](examples/frontend-demo/SPEC.sample.md)).
 
-See [`examples/frontend-demo`](examples/frontend-demo) for a runnable, Chisel-free
-walk-through of all of the above (`./run-demo.sh`, `--drift`, `--ref-drift`).
+- **Spec-driven verification** — the same `PROPERTY`/`COVERAGE` spec objects the
+  RTL binds are reused as testbench checkers (`framework.spec.Bench`) and as a
+  formal harness (`spec_formal.sby`); results fold back so every node shows
+  *bound? · passed in sim? · covered? · formal?* in one report. See
+  [`docs/SPEC_DRIVEN_VERIFICATION.md`](docs/SPEC_DRIVEN_VERIFICATION.md).
+
+Runnable walk-throughs:
+[`examples/frontend-demo`](examples/frontend-demo) (Chisel-free,
+`--drift`/`--ref-drift`), [`examples/stream-processor`](examples/stream-processor)
+(mid-size **real Chisel** + spec-driven testbench), and
+[`examples/stream-processor-s3`](examples/stream-processor-s3) (same graph on
+Scala 3).
 
 To build everything offline run:
 
