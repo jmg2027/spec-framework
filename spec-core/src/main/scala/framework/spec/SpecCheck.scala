@@ -46,6 +46,20 @@ object SpecCheck {
       .map { case (_, dup) => dup.find(_.scalaDeclarationPath.nonEmpty).getOrElse(dup.head) }
       .toList
 
+  /**
+   * Resolve `@fqn:<declarationPath>` relation references (emitted by the `spec`
+   * macro for by-value relations) back to spec ids, using the
+   * scalaDeclarationPath → id map. Anything that still does not resolve is left
+   * as-is so the dangling-reference check can flag it.
+   */
+  def resolveFqns(specs: List[HardwareSpecification]): List[HardwareSpecification] = {
+    val pathToId = specs.collect { case s if s.scalaDeclarationPath.nonEmpty => s.scalaDeclarationPath -> s.id }.toMap
+    def res(refs: Set[String]): Set[String] = refs.map { r =>
+      if (r.startsWith("@fqn:")) pathToId.getOrElse(r.drop(5), r) else r
+    }
+    specs.map(s => s.copy(is = res(s.is), has = res(s.has), uses = res(s.uses)))
+  }
+
   def loadTags(metaDir: Path): List[Tag] =
     Files.walk(metaDir).iterator.asScala
       .filter(_.toString.endsWith(".tag"))
@@ -174,7 +188,8 @@ object SpecCheck {
       h("Dangling references (HARD)")
       if (dangling.nonEmpty)
         dangling.sortBy(_._1).foreach { case (from, rel, ref) =>
-          sb.append(s"    ✗ $from --$rel--> $ref   (undefined)\n")
+          val shown = if (ref.startsWith("@fqn:")) ref.drop(5) + " (unresolved ref)" else ref
+          sb.append(s"    ✗ $from --$rel--> $shown   (undefined)\n")
         }
       else sb.append("  ✓ every reference resolves to a defined spec\n")
 
@@ -215,7 +230,7 @@ object SpecCheck {
     val reset  = flagVal("reset", "reset")
     val strict = flags.contains("--strict")
 
-    val specs = loadSpecs(metaDir)
+    val specs = resolveFqns(loadSpecs(metaDir))
     val tags  = loadTags(metaDir)
 
     val outDir = Paths.get(if (pos.length > 1) pos(1) else pos(0))

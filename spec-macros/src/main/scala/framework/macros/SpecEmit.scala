@@ -60,9 +60,41 @@ object SpecEmit {
     import c.universe._
     val fqn = c.internal.enclosingOwner.fullName
 
-    // Evaluate the builder expression at compile time
+    // -------------------------------------------------------------------------
+    // Relation references by VALUE.
+    //
+    // The builder is evaluated at compile time (below), so a relation argument
+    // that is a sibling spec `val` — `.has(intfFoo)` — cannot be dereferenced:
+    // its enclosing object is still being compiled. We therefore rewrite every
+    // relation argument that is a *stable reference* to a `HardwareSpecification`
+    // into a `@fqn:<fullName>` string literal, BEFORE evaluation. Three things
+    // follow: the eval only ever sees strings (no NPE / no forced ordering),
+    // the reference is still type-checked (a typo'd name is a compile error, so
+    // the compiler guarantees the referenced spec exists), and the relation is
+    // recorded by the referent's declaration path — which the aggregator
+    // (SpecCheck) resolves back to its id. Plain string-id relations are left
+    // untouched, so existing code keeps working.
+    // -------------------------------------------------------------------------
+    val hwType = typeOf[HardwareSpecification]
+    def isStableSpecRef(a: Tree): Boolean =
+      a.tpe != null && a.tpe <:< hwType &&
+        a.symbol != null && a.symbol.isTerm && a.symbol.asTerm.isStable
+    val rewriter = new Transformer {
+      override def transform(tree: Tree): Tree = tree match {
+        case Apply(fun, args) =>
+          val newArgs = args.map { a =>
+            if (isStableSpecRef(a)) Literal(Constant("@fqn:" + a.symbol.fullName))
+            else transform(a)
+          }
+          treeCopy.Apply(tree, transform(fun), newArgs)
+        case _ => super.transform(tree)
+      }
+    }
+    val rewritten = c.untypecheck(rewriter.transform(body.tree.duplicate))
+
+    // Evaluate the (rewritten) builder expression at compile time
     val spec: HardwareSpecification = try {
-      c.eval(c.Expr[HardwareSpecification](c.untypecheck(body.tree.duplicate)))
+      c.eval(c.Expr[HardwareSpecification](rewritten.duplicate))
     } catch {
       case e: Throwable =>
         c.abort(c.enclosingPosition,
@@ -73,6 +105,8 @@ object SpecEmit {
     MetaFile.writeSpec(specWithPath)
 
     val fqnLit = Literal(Constant(fqn))
-    c.Expr[HardwareSpecification](q"{ val _s = $body; _s.copy(scalaDeclarationPath = $fqnLit) }")
+    // Runtime value uses the same rewritten body, so it never dereferences a
+    // sibling val either (keeps forward references safe at runtime too).
+    c.Expr[HardwareSpecification](q"{ val _s = $rewritten; _s.copy(scalaDeclarationPath = $fqnLit) }")
   }
 }

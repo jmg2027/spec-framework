@@ -1,4 +1,4 @@
-# frontend-demo — typed bundles + formal connection
+# frontend-demo — typed bundles, formal connection, by-value relations
 
 A small, self-contained example that exercises two enhancements to the spec
 framework on a slice of a RISC-V-style instruction **fetch unit**:
@@ -9,6 +9,9 @@ framework on a slice of a RISC-V-style instruction **fetch unit**:
 2. **Formal connection (formal 연결)** — a `PROPERTY`/`COVERAGE` spec is bound to
    a real boolean check, so the index records *what* is enforced and the checker
    reports *which declared properties have no check at all*.
+3. **By-value relations** — `.has(intfEpmReqOut)` references other specs *by
+   value*, so a wrong reference is a **compile error** (the compiler guarantees
+   the referenced spec exists), and forward references across the file work.
 
 It is deliberately **Chisel-free**: a ~15-line shim (`minichisel`) stands in for
 `chisel3` so the demo builds in seconds with no heavyweight dependencies. The
@@ -18,8 +21,9 @@ below.
 ## Run it
 
 ```bash
-./run-demo.sh           # build, emit indices, print the compliance report
-./run-demo.sh --drift   # rename an implementation field → spec fails to compile
+./run-demo.sh             # build, emit indices, print the compliance report
+./run-demo.sh --drift     # rename an implementation field → spec fails to compile
+./run-demo.sh --ref-drift # typo a relation's spec reference → spec fails to compile
 ```
 
 (Needs a JDK and `sbt`; override the launcher with `SBT=/path/to/sbt`.)
@@ -93,6 +97,38 @@ ap_PROP_NO_REQTABLE_OVERFLOW: assert property (@(posedge clk) disable iff (reset
 
 (In the demo the conditions are elaboration-time models; against real Chisel
 they reference hardware signals and the same SVA scaffolding is produced.)
+
+## Feature 3 — by-value relations
+
+Relations name other specs **by value**, and `contFetchUnit` is declared at the
+top of the file referencing nodes defined *below* it:
+
+```scala
+val contFetchUnit = spec {
+  CONTRACT("CONT_FETCH_UNIT").desc("…")
+    .has(intfEpmReqOut, intfEpmRespIn)          // ← forward references, by value
+    .has(funcFetchRequest, funcFetchResponse)
+    .uses(paramPcWidth, paramTxnId)
+    .build()
+}
+```
+
+The `spec { … }` macro rewrites each by-value reference to the referent's
+declaration path before evaluating the builder, so the compile-time evaluation
+never dereferences a not-yet-initialised sibling (which previously failed with an
+opaque `null`). Two consequences:
+
+- **The compiler verifies the graph.** Typo a reference and it does not compile
+  (`./run-demo.sh --ref-drift`):
+
+  ```
+  FetchSpecs.scala:32: not found: value intfEpmRespInTYPO
+  ```
+
+  String ids would have compiled and only been caught later by the checker.
+- The checker resolves the paths back to ids, so `SpecIndex.json` still records
+  plain ids (`"has": ["INTF_EPM_REQ_OUT", …]`) and still flags anything that does
+  not resolve as a dangling reference.
 
 ## The report (`SpecCheck`)
 

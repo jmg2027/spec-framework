@@ -2,9 +2,11 @@
 # -----------------------------------------------------------------------------
 #  frontend-demo: typed bundles + formal connection, end to end.
 #
-#    ./run-demo.sh           build the spec graph + RTL, emit indices, run checker
-#    ./run-demo.sh --drift   rename an implementation field and watch the SPEC
-#                            fail to compile (field drift = compile error)
+#    ./run-demo.sh             build the spec graph + RTL, emit indices, run checker
+#    ./run-demo.sh --drift     rename an implementation field and watch the SPEC
+#                              fail to compile (field drift = compile error)
+#    ./run-demo.sh --ref-drift typo a relation's spec reference and watch it fail
+#                              to compile (relation integrity = compile error)
 #
 #  Requires a JDK and `sbt` on PATH (override with `SBT=/path/to/sbt`).
 # -----------------------------------------------------------------------------
@@ -27,6 +29,18 @@ if [[ "${1:-}" == "--drift" ]]; then
   sed -i 's/  val addr  = UInt(p.pcWidth)/  val address = UInt(p.pcWidth)/' "$TYPES"
   echo "### Recompiling the spec graph (it still declares .field(\"addr\", _.addr)) …"
   echo "### Expect a COMPILE ERROR in FetchSpecs.scala, not a silent JSON diff:"
+  echo
+  "$SBT" "${SBT_FLAGS[@]}" "demoSpecs/clean" "demoSpecs/compile" || true
+  exit 0
+fi
+
+if [[ "${1:-}" == "--ref-drift" ]]; then
+  SPECS="$HERE/specs/src/main/scala/frontend/demo/specs/FetchSpecs.scala"
+  echo "### Typo'ing a relation reference: .has(intfEpmRespIn) -> .has(intfEpmRespInTYPO) …"
+  cp "$SPECS" "$SPECS.bak"
+  trap 'mv "$SPECS.bak" "$SPECS"; echo "### restored FetchSpecs.scala"' EXIT
+  sed -i 's/intfEpmReqOut, intfEpmRespIn)/intfEpmReqOut, intfEpmRespInTYPO)/' "$SPECS"
+  echo "### Recompiling — relations are by-value, so a bad reference is a COMPILE ERROR:"
   echo
   "$SBT" "${SBT_FLAGS[@]}" "demoSpecs/clean" "demoSpecs/compile" || true
   exit 0
