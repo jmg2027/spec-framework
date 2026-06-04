@@ -21,6 +21,9 @@ verify the spec graph against the implementation:
   binds a `BUNDLE` to its implementation type `T`. Field name and type are read
   from the selectors, so a renamed/removed field is a **compile error** and an
   undeclared field is a compile error (`bundle`) or warning (`bundleLenient`).
+- **Anchoring RTL** — `@LocalSpec(spec)` (Scala-2 annotation) or `localSpec(spec)` /
+  `localSpec(spec, decl)` (cross-version method; the only form on Scala 3). See
+  [`docs/TAGGING.md`](docs/TAGGING.md) for why both exist and which to use.
 - **By-value relations** — `.has(intfFoo)` references other specs by value
   (not by string id), so a wrong reference is a **compile error**; forward and
   cross-file references work.
