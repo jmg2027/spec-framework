@@ -45,9 +45,11 @@ the probe is a thin HDL tool, the merge is a side-file).
 ## 2. Authoring ergonomics
 
 - **Spec/design ratio ≈ 1.5:1.** The 5-module design is ~150 lines; its specs are
-  ~250. Most of it is mechanical (`INTERFACE("…").desc("…").has(bnd).build()`).
-  A scaffolder (generate spec stubs from a tagged design, or vice versa) would
-  remove most of the boilerplate and is the single biggest ROI lever.
+  ~250. ✅ Addressed in the *correct* direction — **spec → design**: `SpecGen`
+  reads the spec graph and emits a Chisel skeleton (config case class, bundle
+  classes *with real widths*, modules with `localSpec`-anchored ports + sub-module
+  instances + spec-object imports). The spec is the source of truth, so the design
+  skeleton is generated from it (not specs extracted from an existing design).
 - **Relation imports pile up.** By-value relations are great for safety, but
   `TopSpecs` must `import` all five module spec objects to reference their
   contracts. Fine at this size; tedious at 30 modules.

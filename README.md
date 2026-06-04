@@ -34,6 +34,10 @@ verify the spec graph against the implementation:
   **and** a human-readable `SPEC.md` (a GitHub-rendered Mermaid graph + tables;
   see [`examples/frontend-demo/SPEC.sample.md`](examples/frontend-demo/SPEC.sample.md)).
 
+- **Spec → design generation** — `framework.spec.SpecGen` reads the spec graph and
+  emits a Chisel skeleton (config case class, bundle classes with real widths,
+  modules with `localSpec`-anchored ports + sub-modules). The spec leads, the
+  design follows.
 - **Spec-driven verification** — the same `PROPERTY`/`COVERAGE` spec objects the
   RTL binds are reused as testbench checkers (`framework.spec.Bench`) and as a
   formal harness (`spec_formal.sby`); results fold back so every node shows
