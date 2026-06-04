@@ -39,28 +39,32 @@ upstream artefacts.
 ## Feature 1 — typed bundles
 
 ```scala
-// specs/…/FetchSpecs.scala
+// specs/…/FetchSpecs.scala     bundle[T](id, desc, usesParamIds*)(fieldSelectors*)
 val bndFetchReq =
-  bundleSpec[FetchRequest]("BND_FETCH_REQUEST").desc("EPM fetch request")
-    .field("addr",  _.addr)     // _.addr : FetchRequest => UInt …
-    .field("txnId", _.txnId)    // … checked against the real type
-    .uses("PARAM_PC_WIDTH", "PARAM_TXNID_WIDTH")
-    .build()
+  bundle[FetchRequest]("BND_FETCH_REQUEST", "EPM fetch request",
+    "PARAM_PC_WIDTH", "PARAM_TXNID_WIDTH")(_.addr, _.txnId)
 ```
 
-`_.addr` is an ordinary typed selector. Rename `addr` in the implementation and
-the **spec** stops compiling (`./run-demo.sh --drift`):
+`bundle[T]` is a **macro**. It reads each field's NAME and TYPE straight from the
+selector tree — `_.addr` ⇒ name `"addr"`, type `UInt` — so there is no string to
+drift from the selector, the spec can't misreport the type, and the `.spec` is
+emitted at **compile time** (no runtime step). The emitted entry:
+
+```json
+"lists": [ ["addr", "UInt"], ["txnId", "UInt"] ]   // types read from the RTL
+```
+
+Rename `addr` in the implementation and the **spec** stops compiling
+(`./run-demo.sh --drift`):
 
 ```
-FetchSpecs.scala:49:25: value addr is not a member of frontend.demo.types.FetchRequest
+FetchSpecs.scala:46:48: value addr is not a member of frontend.demo.types.FetchRequest
 did you mean address?
-      .field("addr",  _.addr)
-                        ^
 ```
 
-The recorded field type is read from the selector's result type (so the spec
-can't misreport it), and `build()` reflects over the type to flag *undeclared*
-fields — `BND_INSTR_SLOT` below intentionally omits `valid`.
+Completeness is checked against the type's members at compile time:
+`bundle` emits a **compile warning** for undeclared fields (`BND_INSTR_SLOT`
+omits `valid`); `bundleExact` makes the same omission a **compile error**.
 
 ## Feature 2 — formal connection
 
@@ -71,9 +75,22 @@ assert(noOverflow, "request table overflow")
 ```
 
 `assertProperty` records `propertyId ⇐ conditionText ⇐ sourceLocation` into the
-index and returns the condition so it can drive a real `assert`/`cover`. A
-declared property with *no* binding (`PROP_EPOCH_FLUSH_CLEAN`) is reported as
-**unenforced**.
+index (the condition is rendered as clean infix, e.g.
+`(reqCount - respCount) <= maxOutstanding`) and returns the condition so it can
+drive a real `assert`/`cover`. A declared property with *no* binding
+(`PROP_EPOCH_FLUSH_CLEAN`) is reported as **unenforced**.
+
+The checker then exports those bindings to **`properties.sva`** — the concrete
+formal artifact the bindings feed:
+
+```systemverilog
+ap_PROP_NO_REQTABLE_OVERFLOW: assert property (@(posedge clk) disable iff (reset)
+    ((reqCount - respCount) <= maxOutstanding));
+// TODO PROP_EPOCH_FLUSH_CLEAN — An epoch flush clears every outstanding entry
+```
+
+(In the demo the conditions are elaboration-time models; against real Chisel
+they reference hardware signals and the same SVA scaffolding is produced.)
 
 ## The report (`SpecCheck`)
 

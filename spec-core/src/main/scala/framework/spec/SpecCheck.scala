@@ -96,6 +96,39 @@ object SpecCheck {
 
     def hardViolations: Int = dangling.size
 
+    /**
+     * Render the bound properties as a SystemVerilog assertions snippet — the
+     * concrete formal artifact the "formal 연결" feeds. Bound PROPERTY/COVERAGE
+     * nodes become `assert/cover property`; unbound ones become TODO stubs so the
+     * formal gap is visible in the generated file too.
+     */
+    def sva: String = {
+      val descOf  = specs.map(s => s.id -> s.description.replaceAll("\\s+", " ").trim).toMap
+      val bound   = tags.filter(t => t.kind == "assert" || t.kind == "cover").sortBy(_.id)
+      val sb = new StringBuilder
+      sb.append("// ───────────────────────────────────────────────────────────────────────\n")
+      sb.append("// properties.sva — GENERATED from the spec graph by SpecCheck. Do not edit.\n")
+      sb.append("//   bound PROPERTY  ⇒ assert property      bound COVERAGE ⇒ cover property\n")
+      sb.append("//   unbound PROPERTY/COVERAGE ⇒ TODO stub (declared but not enforced)\n")
+      sb.append("// ───────────────────────────────────────────────────────────────────────\n")
+      sb.append("`ifndef SPEC_PROPERTIES_SVH\n`define SPEC_PROPERTIES_SVH\n\n")
+      bound.foreach { t =>
+        val kw     = if (t.kind == "assert") "assert" else "cover"
+        val prefix = if (t.kind == "assert") "ap" else "cp"
+        sb.append(s"// ${t.id} — ${descOf.getOrElse(t.id, "")}\n")
+        sb.append(s"//   bound at ${shortSrc(t.srcFile)}:${t.line}\n")
+        sb.append(s"${prefix}_${t.id}: $kw property (@(posedge clk) disable iff (reset)\n")
+        sb.append(s"    (${t.expr}));\n\n")
+      }
+      if (unenforced.nonEmpty) {
+        sb.append("// ── unenforced (no binding found) ──────────────────────────────────────\n")
+        unenforced.foreach(s => sb.append(s"// TODO ${s.id} — ${descOf.getOrElse(s.id, "")}\n"))
+        sb.append("\n")
+      }
+      sb.append("`endif\n")
+      sb.toString
+    }
+
     def render: String = {
       val sb = new StringBuilder
       def h(t: String): Unit = { sb.append("\n").append(t).append("\n").append("─" * t.length).append("\n") }
@@ -176,12 +209,13 @@ object SpecCheck {
 
     val outDir = Paths.get(if (args.length > 1) args(1) else args(0))
     Files.createDirectories(outDir)
+    val report = Report(specs, tags)
     Files.write(outDir.resolve("SpecIndex.json"), uwrite(specs, indent = 2).getBytes)
     Files.write(outDir.resolve("TagIndex.json"), uwrite(tags, indent = 2).getBytes)
+    Files.write(outDir.resolve("properties.sva"), report.sva.getBytes)
 
-    val report = Report(specs, tags)
     print(report.render)
-    println(s"[SpecCheck] indices → ${outDir.toAbsolutePath}")
+    println(s"[SpecCheck] indices + properties.sva → ${outDir.toAbsolutePath}")
     sys.exit(if (report.hardViolations == 0) 0 else 1)
   }
 }

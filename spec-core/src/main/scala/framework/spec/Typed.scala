@@ -29,6 +29,11 @@
 //  `build()` additionally reflects over `T` to find public fields that were
 //  *not* declared and records them as `undeclared-fields:` so the checker can
 //  flag spec incompleteness (a soft warning, since omission is not a type error).
+//
+//  NOTE: this is the runtime-emitting variant. For compile-time emission (so the
+//  `.spec` exists without running the program) and compile-time completeness
+//  checking, prefer the macro `framework.macros.TypedSpec.bundle[T]`, which reads
+//  field names/types from the selector trees instead of a runtime `TypeTag`.
 // -----------------------------------------------------------------------------
 package framework.spec
 

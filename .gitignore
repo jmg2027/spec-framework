@@ -25,4 +25,5 @@ Thumbs.db
 spec-meta/
 examples/frontend-demo/SpecIndex.json
 examples/frontend-demo/TagIndex.json
+examples/frontend-demo/properties.sva
 *.bak

@@ -18,8 +18,8 @@
 package frontend.demo.specs
 
 import framework.macros.SpecEmit.spec
+import framework.macros.TypedSpec.bundle
 import framework.spec.Spec._
-import framework.spec.Typed._
 import frontend.demo.types._
 
 object FetchSpecs {
@@ -35,37 +35,24 @@ object FetchSpecs {
   }
 
   // ---- Typed bundles (the "타입화" feature) --------------------------------
-  // `bundleSpec[T]` binds the spec to the implementation type T; the field
-  // selectors are compile-checked against T's actual fields — rename a field in
-  // `frontend.demo.types` and this file stops compiling.
-  //
-  // These are NOT wrapped in `spec { … }`: that macro evaluates its body at
-  // compile time, and a `TypeTag` does not survive compile-time `c.eval`. Typed
-  // bundles instead emit their `.spec` at runtime via `build()` (forced by
-  // `SpecEmit.main`). They are never resolved by id-lookup macros — interfaces
-  // reference them by string id — so runtime emission is sufficient.
+  // `bundle[T]` is a macro: it reads each field's NAME and TYPE straight from the
+  // selector tree (`_.addr` ⇒ "addr" : UInt) and emits the `.spec` at compile
+  // time. The field selectors are checked against T's actual members — rename a
+  // field in `frontend.demo.types` and this file stops compiling. Completeness is
+  // also checked at compile time (a warning here; `bundleExact` makes it an error).
+  // Signature: bundle[T](id, desc, usesParamIds*)(fieldSelectors*)
   val bndFetchReq =
-    bundleSpec[FetchRequest]("BND_FETCH_REQUEST").desc("EPM fetch request")
-      .field("addr",  _.addr)
-      .field("txnId", _.txnId)
-      .uses("PARAM_PC_WIDTH", "PARAM_TXNID_WIDTH")
-      .build()
+    bundle[FetchRequest]("BND_FETCH_REQUEST", "EPM fetch request",
+      "PARAM_PC_WIDTH", "PARAM_TXNID_WIDTH")(_.addr, _.txnId)
 
   val bndFetchResp =
-    bundleSpec[FetchResponse]("BND_FETCH_RESPONSE").desc("EPM fetch response")
-      .field("data",  _.data)
-      .field("txnId", _.txnId)
-      .field("eccOK", _.eccOK)
-      .uses("PARAM_TXNID_WIDTH")
-      .build()
+    bundle[FetchResponse]("BND_FETCH_RESPONSE", "EPM fetch response",
+      "PARAM_TXNID_WIDTH")(_.data, _.txnId, _.eccOK)
 
-  // INTENTIONALLY incomplete: `valid` is left undeclared → checker warns.
+  // INTENTIONALLY incomplete: `valid` is left undeclared → compile warning + checker note.
   val bndInstrSlot =
-    bundleSpec[InstrSlot]("BND_INSTR_SLOT").desc("Issued instruction slot")
-      .field("instruction", _.instruction)
-      .field("pc",          _.pc)
-      .uses("PARAM_PC_WIDTH")
-      .build()
+    bundle[InstrSlot]("BND_INSTR_SLOT", "Issued instruction slot",
+      "PARAM_PC_WIDTH")(_.instruction, _.pc)
 
   // ---- Interfaces ---------------------------------------------------------
   val intfEpmReqOut = spec {

@@ -34,15 +34,14 @@ fi
 
 rm -rf "$META"; mkdir -p "$META"
 
-echo "### 1/3  Compile types → specs → design (emits .spec at compile time, .tag from @LocalSpec/assertProperty)"
-echo "### 2/3  Emit typed-bundle specs at runtime"
-echo "### 3/3  Aggregate indices and run the compliance report"
+echo "### 1/2  Compile types → specs → design"
+echo "###      (every .spec is emitted at compile time; .tag from @LocalSpec/assertProperty)"
+echo "### 2/2  Aggregate indices, run the compliance report, generate properties.sva"
 echo
 "$SBT" "${SBT_FLAGS[@]}" \
   demoTypes/clean demoSpecs/clean demoDesign/clean \
   demoDesign/compile \
-  "demoSpecs/runMain frontend.demo.specs.SpecEmit" \
   "specCore/runMain framework.spec.SpecCheck $META $OUT"
 
 echo
-echo "### Wrote $OUT/SpecIndex.json and $OUT/TagIndex.json"
+echo "### Wrote $OUT/SpecIndex.json, $OUT/TagIndex.json, $OUT/properties.sva"

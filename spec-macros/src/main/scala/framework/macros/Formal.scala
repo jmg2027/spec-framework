@@ -65,13 +65,11 @@ object Formal {
       }
 
     val pos = c.enclosingPosition
-    // Pretty-print the bound condition. The typed tree qualifies every field with
-    // its synthetic `EnclosingModule.this.` prefix; strip that noise so the index
-    // records the condition the way the engineer wrote it.
-    val exprText = {
-      val printed = try showCode(c.untypecheck(cond.tree.duplicate)) catch { case _: Throwable => showCode(cond.tree) }
-      printed.replaceAll("""\b[A-Za-z_][A-Za-z0-9_]*\.this\.""", "").trim
-    }
+    // Render the bound condition into clean infix form (valid for the report AND
+    // directly usable as an SVA expression): `(reqCount - respCount) <= maxOutstanding`.
+    // The typed tree uses method-call form (`a.<=(b)`) and synthetic `This`
+    // qualifiers, so we walk it and re-emit operators infix.
+    val exprText = renderInfix(c)(cond.tree)
 
     val tag = Tag(
       id                       = id,
@@ -90,5 +88,30 @@ object Formal {
     // Return the original condition unchanged: runtime/sim/formal semantics are
     // whatever the caller wires it to (e.g. chisel3.assert(assertProperty(p){c})).
     c.Expr[Boolean](q"${cond.tree}")
+  }
+
+  // Set of symbolic operators rendered infix (everything else stays method form).
+  private val infixOps =
+    Set("+", "-", "*", "/", "%", "<", ">", "<=", ">=", "==", "!=", "&&", "||",
+        "&", "|", "^", "<<", ">>", ">>>")
+
+  /** Pretty-print a (typed) boolean tree as a clean infix expression. */
+  private def renderInfix(c: blackbox.Context)(tree: c.universe.Tree): String = {
+    import c.universe._
+    def go(t: Tree): String = t match {
+      case Block(Nil, e)                       => go(e)
+      case Typed(e, _)                         => go(e)
+      case Apply(Select(lhs, op), List(rhs)) if infixOps(op.decodedName.toString) =>
+        s"(${go(lhs)} ${op.decodedName.toString} ${go(rhs)})"
+      case Select(qual, op) if op.decodedName.toString == "unary_!" => s"!${go(qual)}"
+      case Apply(Select(qual, name), args)     => s"${go(qual)}.${name.decodedName.toString}(${args.map(go).mkString(", ")})"
+      case Select(This(_), name)               => name.decodedName.toString
+      case Select(qual, name)                  => s"${go(qual)}.${name.decodedName.toString}"
+      case Ident(name)                         => name.decodedName.toString
+      case Literal(Constant(v))                => v.toString
+      case other                               => showCode(other).replaceAll("""\b[A-Za-z_][A-Za-z0-9_]*\.this\.""", "")
+    }
+    val s = go(tree)
+    if (s.startsWith("(") && s.endsWith(")")) s.drop(1).dropRight(1) else s // strip one redundant outer pair
   }
 }
