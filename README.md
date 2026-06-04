@@ -12,6 +12,21 @@ The DSL offers categories such as `CONTRACT`, `FUNCTION`, and `INTERFACE`.  The
 `BUNDLE` category can be used to document reusable data structures referenced by
 interfaces.
 
+## Target & the build-time guarantee
+
+The framework is built for a **production Chisel / ASIC** flow, i.e. **Scala 2.13**
+(the only Scala version Chisel publishes for). Its defining virtue is **build-time
+emission**: `@LocalSpec`, `spec { … }`, typed `bundle`, and `param` all write their
+`.spec` / `.tag` artefacts during `sbt compile` — *no Chisel run or elaboration is
+needed* to materialise the spec graph, so the CI gate (`SpecCheck --strict`) runs on
+`compile`. That is the whole reason these are macros rather than runtime calls.
+
+The same spec sources are cross-built to **Scala 3** as a forward-looking
+portability proof (see [`examples/stream-processor-s3`](examples/stream-processor-s3)).
+Scala 3 has no Chisel and no usable macro annotation, so it relies on a Chisel-shaped
+shim and emits most specs at run time; treat it as the secondary target, not the
+production path. (`param` now emits at compile time on both versions.)
+
 ## Compiler-verified specs
 
 Beyond documentation and traceability, the framework lets the Scala compiler
@@ -24,6 +39,11 @@ verify the spec graph against the implementation:
 - **Anchoring RTL** — `@LocalSpec(spec)` (Scala-2 annotation) or `localSpec(spec)` /
   `localSpec(spec, decl)` (cross-version method; the only form on Scala 3). See
   [`docs/TAGGING.md`](docs/TAGGING.md) for why both exist and which to use.
+- **Typed parameters** — `framework.macros.TypedSpec.param[Cfg]("…","…", 4)(_.dataBytes)`
+  binds a `PARAMETER` to a config field: the field name/type come from the
+  selector, so a renamed field is a **compile error**, and the `.spec` is emitted
+  at **compile time** (build-time pure). `paramSpec[Cfg](…, cfg)(_.dataBytes)` is a
+  run-time variant that also single-sources the *default* from a live config.
 - **By-value relations** — `.has(intfFoo)` references other specs by value
   (not by string id), so a wrong reference is a **compile error**; forward and
   cross-file references work.

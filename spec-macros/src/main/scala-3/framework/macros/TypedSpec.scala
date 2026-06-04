@@ -18,10 +18,57 @@ object TypedSpec:
       inline fields: (T => Any)*): HardwareSpecification =
     ${ bundleImpl[T]('id, 'desc, 'uses, 'fields, '{ false }) }
 
+  /** Typed PARAMETER spec emitted at COMPILE time (build-time pure): name/type
+    * from the selector (rename ⇒ compile error), default a compile-time literal.
+    * Canonical for production builds where the spec must be a pure build artefact.
+    * See the Scala-2 `param` scaladoc for the trade-off vs [[paramSpec]]. */
+  inline def param[T](id: String, desc: String, default: Any)(sel: T => Any): HardwareSpecification =
+    ${ paramCTImpl[T]('id, 'desc, 'default, 'sel) }
+
   /** Typed PARAMETER spec bound to a config field: name/type from the selector
-    * (rename ⇒ compile error), default read from `cfg` at run time (one source). */
+    * (rename ⇒ compile error), default read from `cfg` at run time (one source).
+    * Emits at RUN time; prefer [[param]] when the build must stay run-free. */
   inline def paramSpec[T](id: String, desc: String, cfg: T)(sel: T => Any): HardwareSpecification =
     ${ paramImpl[T]('id, 'desc, 'cfg, 'sel) }
+
+  def paramCTImpl[T: Type](id: Expr[String], desc: Expr[String], default: Expr[Any], sel: Expr[T => Any])(using Quotes): Expr[HardwareSpecification] =
+    import quotes.reflect.*
+    val idV   = id.value.getOrElse(report.errorAndAbort("param: id must be a string literal"))
+    val descV = desc.value.getOrElse(report.errorAndAbort("param: desc must be a string literal"))
+    require(!idV.contains(" "), s"Spec ID '$idV' must not contain spaces")
+    def digSelect(t: Term): Option[(String, TypeRepr)] = t match
+      case Select(_, name)  => Some((name, t.tpe))
+      case Typed(e, _)      => digSelect(e)
+      case Block(_, e)      => digSelect(e)
+      case Inlined(_, _, e) => digSelect(e)
+      case _                => None
+    val (fname, ftype) = sel.asTerm.underlyingArgument match
+      case Lambda(_, body) => digSelect(body).map((n, t) => (n, typeLabel(t.show)))
+        .getOrElse(report.errorAndAbort("param selector must be _.field"))
+      case _ => report.errorAndAbort("param selector must be a function literal _.field")
+    def digLit(t: Term): Option[Any] = t match
+      case Literal(c)       => Some(c.value)
+      case Typed(e, _)      => digLit(e)
+      case Block(_, e)      => digLit(e)
+      case Inlined(_, _, e) => digLit(e)
+      case _                => None
+    val defaultV = digLit(default.asTerm.underlyingArgument).map(String.valueOf).getOrElse(
+      report.errorAndAbort(
+        "param: default must be a compile-time literal. Use paramSpec[T](id, desc, cfg)(sel) for a runtime config default."))
+    val fqn = Fqn.enclosingDeclPath(Symbol.spliceOwner)
+    val entries = List("name" -> fname, "type" -> ftype, "default" -> defaultV)
+    // build-time emission: runs now, during compilation
+    MetaFile.writeSpec(HardwareSpecification(
+      id = idV, category = SpecCategory.PARAMETER, description = descV,
+      lists = entries, scalaDeclarationPath = fqn))
+    val entriesE = Expr(entries)
+    '{
+      val s = HardwareSpecification(
+        id = ${ Expr(idV) }, category = SpecCategory.PARAMETER, description = ${ Expr(descV) },
+        lists = ${ entriesE }, scalaDeclarationPath = ${ Expr(fqn) })
+      SpecRegistry.addSpec(s)
+      s
+    }
 
   def paramImpl[T: Type](id: Expr[String], desc: Expr[String], cfg: Expr[T], sel: Expr[T => Any])(using Quotes): Expr[HardwareSpecification] =
     import quotes.reflect.*

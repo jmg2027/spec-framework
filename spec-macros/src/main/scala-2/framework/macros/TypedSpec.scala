@@ -44,13 +44,103 @@ object TypedSpec {
     macro bundleLenientImpl[T]
 
   /**
-   * Typed PARAMETER spec bound to a config field. The field name and type come
-   * from the selector (`_.dataBytes`) — a rename is a compile error — and the
-   * `default` is read from `cfg` at run time, so the spec and the config case
-   * class can no longer drift (single source of truth for parameter defaults).
+   * Typed PARAMETER spec, emitted at COMPILE time (build-time pure).
+   *
+   * The field name and type come from the selector (`_.dataBytes`) — a rename is
+   * a compile error — and the `default` is a compile-time literal. The `.spec` is
+   * written during `compile` (like `bundle` / `spec { … }`), so no run /
+   * elaboration is needed to materialise it. This is the canonical form for a
+   * production Chisel/ASIC build, where the spec graph must be a pure build-time
+   * artefact (the CI gate runs on `compile`, not on a Chisel run).
+   *
+   * Trade-off vs [[paramSpec]]: the default is restated here as a literal rather
+   * than read from a live config instance. The selector still binds the name/type
+   * to the config field (rename-safe); only the default value is duplicated. If
+   * you would rather single-source the default from the config and can afford a
+   * runtime emission pass, use [[paramSpec]].
+   */
+  def param[T](id: String, desc: String, default: Any)(sel: T => Any): HardwareSpecification =
+    macro paramCTImpl[T]
+
+  /**
+   * Typed PARAMETER spec bound to a config field, emitted at RUN time.
+   *
+   * The field name and type come from the selector (`_.dataBytes`) — a rename is
+   * a compile error — and the `default` is read from `cfg` at run time, so the
+   * spec and the config case class can no longer drift (single source of truth
+   * for parameter defaults). The cost is that the `.spec` is emitted at runtime,
+   * so materialising it needs a run (`Elaborate`/a test), not just `compile` —
+   * unlike [[param]], which is build-time pure. Prefer [[param]] when the build
+   * must stay run-free; use this when single-sourcing the default matters more.
    */
   def paramSpec[T](id: String, desc: String, cfg: T)(sel: T => Any): HardwareSpecification =
     macro paramImpl[T]
+
+  /** Compile-time PARAMETER spec: name/type from the selector tree, default a
+    * compile-time literal, `.spec` written at macro expansion (build-time pure). */
+  def paramCTImpl[T: c.WeakTypeTag](c: blackbox.Context)(
+      id: c.Expr[String], desc: c.Expr[String], default: c.Expr[Any])(
+      sel: c.Expr[T => Any]): c.Expr[HardwareSpecification] = {
+    import c.universe._
+    // Read compile-time literals straight from the trees. We deliberately avoid
+    // c.eval here: it spins up a sub-compiler that opens the whole classpath, and
+    // doing that 3× per param (id, desc, default) exhausts the file-descriptor
+    // budget on a large Chisel classpath. The args are literals, so the tree is a
+    // Literal(Constant(_)); only fall back to c.eval for the rare non-literal.
+    def litConst(t: c.Tree): Option[Any] = t match {
+      case Literal(Constant(v)) => Some(v)
+      case Typed(e, _)          => litConst(e)
+      case Block(_, e)          => litConst(e)
+      case Apply(_, List(e))    => litConst(e) // boxing wrappers e.g. Int→Any
+      case _                    => None
+    }
+    def litStr(e: c.Tree, what: String): String = litConst(e) match {
+      case Some(s) => String.valueOf(s)
+      case None    =>
+        try c.eval(c.Expr[String](c.untypecheck(e.duplicate)))
+        catch { case ex: Throwable =>
+          c.abort(e.pos, s"param: $what must be a compile-time constant: ${ex.getMessage}. " +
+            "Use paramSpec[T](id, desc, cfg)(sel) for a default read from a runtime config.") }
+    }
+
+    val idV   = litStr(id.tree, "id")
+    val descV = litStr(desc.tree, "desc")
+    require(!idV.contains(" "), s"Spec ID '$idV' must not contain spaces")
+
+    val (fieldName, fieldType) = sel.tree match {
+      case Function(_, body) =>
+        def dig(t: Tree): Option[Select] = t match {
+          case s: Select   => Some(s)
+          case Typed(e, _) => dig(e)
+          case Block(_, e) => dig(e)
+          case _           => None
+        }
+        dig(body).map(s => (s.name.decodedName.toString, typeLabel(s.tpe.toString)))
+          .getOrElse(c.abort(sel.tree.pos, "param selector must be a simple field access like _.dataBytes"))
+      case _ => c.abort(sel.tree.pos, "param selector must be a function literal")
+    }
+    val defaultV = litStr(default.tree, "default")
+    val fqn = c.internal.enclosingOwner.fullName
+
+    val entries = List("name" -> fieldName, "type" -> fieldType, "default" -> defaultV)
+    MetaFile.writeSpec(
+      HardwareSpecification(
+        id = idV, category = SpecCategory.PARAMETER, description = descV,
+        lists = entries,
+        scalaDeclarationPath = fqn))
+    c.info(c.enclosingPosition, s"[TypedSpec] emitted PARAMETER '$idV' (default=$defaultV)", force = true)
+
+    val entryLits = entries.map { case (k, v) => q"($k, $v)" }
+    c.Expr[HardwareSpecification](q"""
+      _root_.framework.spec.HardwareSpecification(
+        id = $idV,
+        category = _root_.framework.spec.SpecCategory.PARAMETER,
+        description = $descV,
+        lists = _root_.scala.collection.immutable.List(..$entryLits),
+        scalaDeclarationPath = $fqn
+      )
+    """)
+  }
 
   def paramImpl[T](c: blackbox.Context)(
       id: c.Expr[String], desc: c.Expr[String], cfg: c.Expr[T])(
