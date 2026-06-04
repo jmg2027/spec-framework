@@ -95,6 +95,25 @@ interface/function, ready to bind to signals.
 Verilog. They are scaffolding: `sby spec_formal.sby` runs the proof once yosys +
 a solver are installed.
 
+## Running it for real (verilator / yosys)
+
+With the tools installed, the verilator backend is a true RTL run:
+
+- `EmitVerilog` lowers the design to SystemVerilog (firtool, `-enable-layers=Verification`
+  so the assertions/covers are live), and `RealTestbench` drives the elaborated
+  DUT under verilator — the spec assertions are checked by the simulator itself
+  and `--inject-bug` makes one fire. **This is verified working.**
+- Verilator also collects real coverage (`--coverage` → `coverage.dat`: line /
+  toggle / branch over the whole DUT). Mapping firtool's *user* `cover()` points
+  back to spec ids needs a little more glue — they are emitted as immediate covers
+  inside bound layer modules, which open-source verilator does not surface as user
+  coverage; exposing the interface-fire signals (`--public`) and peeking them is
+  the clean path. So functional coverage stays in the (fully observable) model
+  backend, and verilator is used where it shines: checking the assertions on the
+  real RTL.
+- Open-source yosys needs Verific for SVA `assert property`, so `spec_formal.sby`
+  is generated and runs under a Verific-enabled yosys / a commercial prover.
+
 ## Why this matters (methodology)
 
 - **One definition, three uses.** A property/coverage point is declared once (the
