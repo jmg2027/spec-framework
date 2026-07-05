@@ -33,5 +33,4 @@ examples/plugin-consumer/SPEC.md
 # stream-processor generated artefacts
 examples/stream-processor/artifacts/
 examples/stream-processor/*.fir
-examples/stream-processor-s3/artifacts/
 examples/stream-processor/gen-out/

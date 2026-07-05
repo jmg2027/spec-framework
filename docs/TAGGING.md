@@ -3,7 +3,7 @@
 There are two ways to bind an RTL declaration to a spec. They overlap but are not
 redundant — and there is a historical reason both exist.
 
-## `@LocalSpec(spec)` — macro annotation (Scala 2 only)
+## `@LocalSpec(spec)` — macro annotation
 
 The original form. A whitebox macro annotation on a **declaration**:
 
@@ -26,11 +26,9 @@ Why it was a macro annotation:
    on a dummy val just above: `@LocalSpec(spec) val _t = ()` then the `when {…}`.
 3. It returns the annottee unchanged — a pure side-effecting tag.
 
-## `localSpec(spec)` / `localSpec(spec, decl)` — method (Scala 2 **and** 3)
+## `localSpec(spec)` / `localSpec(spec, decl)` — method
 
-Added later for **cross-version** support: Scala 3 has no usable macro annotation
-(the 3.3 experimental `MacroAnnotation` crashes the inliner on macro-produced
-`val` arguments — our spec objects). So on Scala 3 this method is the *only* way.
+Added later as a method-form alternative to the annotation.
 
 ```scala
 class FetchUnit extends Module {
@@ -48,12 +46,10 @@ dummy-val trick** (tag a `when`/`:=` region directly), and the value form gives
 
 | | `@LocalSpec` | `localSpec` |
 |---|---|---|
-| Scala 2 | ✅ idiomatic, declaration-level | ✅ |
-| Scala 3 | ❌ (no macro annotation) | ✅ (only option) |
 | class/module level | ✅ cleanest | ✅ (statement in body) |
 | port / val | ✅ (no wrap) | ✅ value form `localSpec(s, decl)` |
 | a `when`/`:=` region | dummy-val trick | ✅ direct statement |
 
-**Recommendation:** prefer `localSpec` for new and cross-version code; keep
-`@LocalSpec` as the Scala-2 declaration-level convenience. Both emit the same
+**Recommendation:** use `@LocalSpec` for declaration-level anchoring and
+`localSpec` for statement regions and the value form. Both emit the same
 `.tag`, so a module can mix them and the checker treats them identically.

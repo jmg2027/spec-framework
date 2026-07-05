@@ -63,17 +63,6 @@ object SpecCheck {
     specs.map(s => s.copy(is = res(s.is), has = res(s.has), uses = res(s.uses)))
   }
 
-  /**
-   * Resolve `@fqn:` tag ids (emitted on Scala 3, where `@LocalSpec` /
-   * `assertProperty` cannot look up the spec id at compile time because specs are
-   * emitted at run time) back to real spec ids via the declaration-path map.
-   * On Scala 2 tags already carry real ids, so this is a no-op there.
-   */
-  def resolveTagFqns(tags: List[Tag], specs: List[HardwareSpecification]): List[Tag] = {
-    val pathToId = specs.collect { case s if s.scalaDeclarationPath.nonEmpty => s.scalaDeclarationPath -> s.id }.toMap
-    tags.map(t => if (t.id.startsWith("@fqn:")) t.copy(id = pathToId.getOrElse(t.id.drop(5), t.id)) else t)
-  }
-
   def loadTags(metaDir: Path): List[Tag] =
     Files.walk(metaDir).iterator.asScala
       .filter(_.toString.endsWith(".tag"))
@@ -476,7 +465,7 @@ object SpecCheck {
     val strict = flags.contains("--strict")
 
     val specs = applyWidths(resolveFqns(loadSpecs(metaDir)), loadWidths(metaDir))
-    val tags  = resolveTagFqns(loadTags(metaDir), specs)
+    val tags  = loadTags(metaDir)
     val verif = loadVerif(metaDir)
 
     val outDir = Paths.get(pos.lift(1).getOrElse(metaArg.get))

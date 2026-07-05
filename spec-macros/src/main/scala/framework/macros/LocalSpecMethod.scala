@@ -1,7 +1,6 @@
-// spec-macros/src/main/scala-2/framework/macros/LocalSpecMethod.scala
-// Method form of @LocalSpec for Scala 2 (`localSpec(spec)`), matching the Scala 3
-// `localSpec` inline method so design code can be written identically on both
-// versions. Emits an `impl` tag anchoring the enclosing declaration to `spec`.
+// spec-macros/src/main/scala/framework/macros/LocalSpecMethod.scala
+// Method form of @LocalSpec (`localSpec(spec)`).
+// Emits an `impl` tag anchoring the enclosing declaration to `spec`.
 package framework.macros
 
 import scala.language.experimental.macros
