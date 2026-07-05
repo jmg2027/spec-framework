@@ -21,12 +21,6 @@ emission**: `@LocalSpec`, `spec { … }`, typed `bundle`, and `param` all write 
 needed* to materialise the spec graph, so the CI gate (`SpecCheck --strict`) runs on
 `compile`. That is the whole reason these are macros rather than runtime calls.
 
-The same spec sources are cross-built to **Scala 3** as a forward-looking
-portability proof (see [`examples/stream-processor-s3`](examples/stream-processor-s3)).
-Scala 3 has no Chisel and no usable macro annotation, so it relies on a Chisel-shaped
-shim and emits most specs at run time; treat it as the secondary target, not the
-production path. (`param` now emits at compile time on both versions.)
-
 ## Compiler-verified specs
 
 Beyond documentation and traceability, the framework lets the Scala compiler
@@ -36,8 +30,8 @@ verify the spec graph against the implementation:
   binds a `BUNDLE` to its implementation type `T`. Field name and type are read
   from the selectors, so a renamed/removed field is a **compile error** and an
   undeclared field is a compile error (`bundle`) or warning (`bundleLenient`).
-- **Anchoring RTL** — `@LocalSpec(spec)` (Scala-2 annotation) or `localSpec(spec)` /
-  `localSpec(spec, decl)` (cross-version method; the only form on Scala 3). See
+- **Anchoring RTL** — `@LocalSpec(spec)` (annotation) or `localSpec(spec)` /
+  `localSpec(spec, decl)` (method form). See
   [`docs/TAGGING.md`](docs/TAGGING.md) for why both exist and which to use.
 - **Typed parameters** — `framework.macros.TypedSpec.param[Cfg]("…","…", 4)(_.dataBytes)`
   binds a `PARAMETER` to a config field: the field name/type come from the
@@ -69,10 +63,8 @@ verify the spec graph against the implementation:
 
 Runnable walk-throughs:
 [`examples/frontend-demo`](examples/frontend-demo) (Chisel-free,
-`--drift`/`--ref-drift`), [`examples/stream-processor`](examples/stream-processor)
-(mid-size **real Chisel** + spec-driven testbench), and
-[`examples/stream-processor-s3`](examples/stream-processor-s3) (same graph on
-Scala 3).
+`--drift`/`--ref-drift`) and [`examples/stream-processor`](examples/stream-processor)
+(mid-size **real Chisel** + spec-driven testbench).
 
 To build everything offline run:
 

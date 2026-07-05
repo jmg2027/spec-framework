@@ -73,12 +73,6 @@ the probe is a thin HDL tool, the merge is a side-file).
 
 ## 3. Workflow / tooling
 
-- **Scala 3 needs a run step that touches every spec object.** On Scala 3 most
-  specs emit at run time, so `Main` must reference each spec object or it silently
-  emits nothing — easy to forget, and the node just goes "missing". (Partially
-  eased: `bundle`, `spec { … }` on Scala 2 and now `param` on *both* versions emit
-  at compile time, so those nodes never depend on a run.) An sbt task that
-  discovers and forces the remaining run-time spec objects would close the gap.
 - **No live feedback.** The loop is compile → run → check. "This contract isn't
   anchored" only shows after `SpecCheck`. An incremental/editor surfacing of
   coverage would tighten it.
@@ -94,7 +88,5 @@ the probe is a thin HDL tool, the merge is a side-file).
 
 - By-value relations catching typos at compile time, and typed bundles catching
   field drift, are the standout wins — they make the spec *load-bearing*.
-- One shared spec graph across Scala 2 (Chisel) and Scala 3 (shim), producing an
-  identical report, is a strong portability story.
 - `SPEC.md` (Mermaid + coverage + anchors) is genuinely browsable with zero extra
   tooling — the right default human artefact.

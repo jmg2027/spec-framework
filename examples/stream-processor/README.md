@@ -114,10 +114,7 @@ Functional coverage (auto-derived)               18/18  ✓ every interface fire
 Needs `verilator` (real sim) and, for formal, `yosys`/`sby`. See
 [`docs/SPEC_DRIVEN_VERIFICATION.md`](../../docs/SPEC_DRIVEN_VERIFICATION.md).
 
-## Scala 2 / Scala 3
+## Scala version
 
 Chisel is published **only for Scala 2.13** (there is no `chisel_3` artefact), so
-this real-Chisel build is Scala 2.13. The spec framework itself is cross-built to
-Scala 3 — the same design/spec structure on a Chisel-shaped shim is in
-[`../stream-processor-s3`](../stream-processor-s3), which builds and reports
-identically on Scala 3.3.
+this build — like the spec framework itself — is Scala 2.13.

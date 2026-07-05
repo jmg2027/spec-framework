@@ -1,6 +1,6 @@
 // -----------------------------------------------------------------------------
 //  @LocalSpec  – compile-time macro annotation tagging a declaration with a spec.
-//  Location: spec-macros/src/main/scala-2/framework/macros/LocalSpec.scala
+//  Location: spec-macros/src/main/scala/framework/macros/LocalSpec.scala
 //
 //  Two ways to anchor RTL to a spec exist; they are complementary, not redundant:
 //
@@ -10,10 +10,7 @@
 //                                   for module-level anchoring: `@LocalSpec(cont)
 //                                   class Foo`. Returns the annottee unchanged.
 //
-//    framework.macros.localSpec(..) — a method (package object). The CROSS-VERSION
-//                                   form (the only one available on Scala 3, where
-//                                   macro annotations are experimental and crash the
-//                                   3.3 inliner on macro-produced val arguments).
+//    framework.macros.localSpec(..) — a method (package object).
 //                                   `localSpec(spec)` as a statement tags the
 //                                   enclosing def/module (and supersedes the old
 //                                   "dummy val above a when/:=" trick); the value
