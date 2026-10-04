@@ -21,7 +21,8 @@ object SpecIndex {
     } else {
       val specFiles = baseDir.listFiles().filter(f => f.getName.endsWith(".spec"))
       specFiles.flatMap { file =>
-        val lines = Source.fromFile(file).getLines().toList
+        val source = Source.fromFile(file)
+        val lines = try source.getLines().toList finally source.close()
         val idOpt = lines.find(_.startsWith("id=")).map(_.drop(3).trim)
         val pathOpt = lines.find(_.startsWith("scalaDeclarationPath=")).map(_.drop(21).trim)
         for (id <- idOpt; path <- pathOpt) yield path -> id

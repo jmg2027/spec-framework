@@ -83,6 +83,14 @@ object LocalSpec {
     MetaFile.writeTag(tag)
     c.info(pos, s"[LocalSpec] emitted .tag for '${tag.id}'", force = true)
 
-    annottees.head
+    // For an annotated parameter scalac supplies the parameter followed by its
+    // enclosing class/method. Return the enclosing definition, not the parameter
+    // as a top-level tree. For classes retain an explicit companion as well.
+    val expanded = annottees.toList match {
+      case (_: ValDef) :: (owner: ClassDef) :: rest => owner :: rest
+      case (_: ValDef) :: (owner: DefDef) :: rest   => owner :: rest
+      case trees                                 => trees
+    }
+    q"..$expanded"
   }
 }
